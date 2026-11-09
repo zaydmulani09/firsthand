@@ -8,6 +8,7 @@ pub mod canon;
 pub mod error;
 pub mod hash;
 pub mod id;
+pub mod iface;
 pub mod model;
 pub mod paths;
 pub mod policy;
@@ -17,6 +18,7 @@ pub mod time;
 pub use error::{Error, ExitCode, Result};
 pub use hash::{B3, GitOid};
 pub use id::{Att, Clm, Dec, Id, IdGen, IdKind, Pkt, Snp, Tsk};
+pub use iface::*;
 pub use model::*;
 pub use time::{Clock, SystemClock, Ts};
 

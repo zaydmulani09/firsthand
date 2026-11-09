@@ -208,3 +208,34 @@ fn sha256_repos_work_when_supported() {
     let (s, _) = snap(&r, &SnapshotPolicy::default());
     assert_eq!(s.commit.as_str().len(), 64);
 }
+
+#[test]
+fn head_relations_and_diff() {
+    use fh_core::HeadRelation;
+    let r = TestRepo::new();
+    let c = r.linear_history(3, "a.txt");
+    let repo = Repo::discover(r.path()).unwrap();
+    let oid = |s: &str| fh_core::GitOid::parse(s).unwrap();
+    assert_eq!(repo.head_relation(&oid(&c[2])).unwrap(), HeadRelation::Same);
+    assert_eq!(
+        repo.head_relation(&oid(&c[0])).unwrap(),
+        HeadRelation::Ahead { n: 2 }
+    );
+    r.git(&["checkout", "-q", "-b", "side", &c[1]]);
+    r.write("b.txt", "side");
+    r.commit_all("side");
+    assert_eq!(
+        repo.head_relation(&oid(&c[2])).unwrap(),
+        HeadRelation::Diverged {
+            ahead: 1,
+            behind: 1
+        }
+    );
+    assert_eq!(
+        repo.head_relation(&oid(&"1".repeat(40))).unwrap(),
+        HeadRelation::AnchorMissing
+    );
+    let d = repo.diff_name_status(&c[2], "HEAD").unwrap();
+    assert!(d.iter().any(|p| p.path == "b.txt" && p.status == "A"));
+    assert!(d.iter().any(|p| p.path == "a.txt" && p.status == "M"));
+}
