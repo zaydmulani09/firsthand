@@ -61,7 +61,11 @@ pub fn fixtures(dir: &Path) -> Result<()> {
     let leg: Id<Leg> = ids.new_id(&t0);
     let pkt: Id<Pkt> = ids.new_id(&t0);
     let snap_id: Id<Snp> = ids.new_id(&t0);
-    let lref = |seq: u64| LedgerRef { leg: leg.clone(), seq, hash: B3::of(&seq.to_le_bytes()) };
+    let lref = |seq: u64| LedgerRef {
+        leg: leg.clone(),
+        seq,
+        hash: B3::of(&seq.to_le_bytes()),
+    };
     let snapshot = SnapshotRef {
         id: snap_id.clone(),
         commit: oid(0x3f),
@@ -71,11 +75,20 @@ pub fn fixtures(dir: &Path) -> Result<()> {
         kind: SnapshotKind::Handoff,
         created_at: t0.clone(),
     };
-    let mk_claim = |text: &str, cat: ClaimCategory, src: OriginSource, scope: Scope, probe: Option<Probe>, seq: u64| Claim {
+    let mk_claim = |text: &str,
+                    cat: ClaimCategory,
+                    src: OriginSource,
+                    scope: Scope,
+                    probe: Option<Probe>,
+                    seq: u64| Claim {
         id: ids.new_id(&t0),
         text: text.to_owned(),
         category: cat,
-        origin: ClaimOrigin { source: src, agent: Some(AgentId::ClaudeCode), confidence_permille: 600 },
+        origin: ClaimOrigin {
+            source: src,
+            agent: Some(AgentId::ClaudeCode),
+            confidence_permille: 600,
+        },
         scope,
         probe,
         results: vec![],
@@ -89,22 +102,40 @@ pub fn fixtures(dir: &Path) -> Result<()> {
             ClaimCategory::CommandSucceeded,
             OriginSource::Witnessed,
             Scope::Repo { tree: oid(0x8e) },
-            Some(Probe::LedgerVerification { kind: VerificationKind::Test, matcher: None, require: LedgerRequire::TestsAllPass }),
+            Some(Probe::LedgerVerification {
+                kind: VerificationKind::Test,
+                matcher: None,
+                require: LedgerRequire::TestsAllPass,
+            }),
             4,
         ),
         mk_claim(
             "src/auth.rs exists",
             ClaimCategory::FileCreated,
             OriginSource::TranscriptExtracted,
-            Scope::Items { files: vec![ScopedFile { path: "src/auth.rs".into(), blob: Some(oid(0x44)) }], symbols: vec![] },
-            Some(Probe::FileExists { path: "src/auth.rs".into() }),
+            Scope::Items {
+                files: vec![ScopedFile {
+                    path: "src/auth.rs".into(),
+                    blob: Some(oid(0x44)),
+                }],
+                symbols: vec![],
+            },
+            Some(Probe::FileExists {
+                path: "src/auth.rs".into(),
+            }),
             9,
         ),
         mk_claim(
             "token refresh works",
             ClaimCategory::BugFixed,
             OriginSource::AgentDeclared,
-            Scope::Items { files: vec![ScopedFile { path: "src/auth/token.rs".into(), blob: Some(oid(0x55)) }], symbols: vec![] },
+            Scope::Items {
+                files: vec![ScopedFile {
+                    path: "src/auth/token.rs".into(),
+                    blob: Some(oid(0x55)),
+                }],
+                symbols: vec![],
+            },
             None,
             12,
         ),
@@ -113,7 +144,11 @@ pub fn fixtures(dir: &Path) -> Result<()> {
             ClaimCategory::TestsPass,
             OriginSource::TranscriptExtracted,
             Scope::Repo { tree: oid(0x8e) },
-            Some(Probe::LedgerVerification { kind: VerificationKind::Test, matcher: None, require: LedgerRequire::TestsAllPass }),
+            Some(Probe::LedgerVerification {
+                kind: VerificationKind::Test,
+                matcher: None,
+                require: LedgerRequire::TestsAllPass,
+            }),
             20,
         ),
     ];
@@ -130,13 +165,31 @@ pub fn fixtures(dir: &Path) -> Result<()> {
         head_relation: HeadRelation::Ahead { n: 4 },
         commits_since_anchor: 4,
         files_changed: vec![
-            PathChange { status: "M".into(), path: "src/auth/token.rs".into(), old_path: None },
-            PathChange { status: "A".into(), path: "docs/notes.md".into(), old_path: None },
+            PathChange {
+                status: "M".into(),
+                path: "src/auth/token.rs".into(),
+                old_path: None,
+            },
+            PathChange {
+                status: "A".into(),
+                path: "docs/notes.md".into(),
+                old_path: None,
+            },
         ],
-        symbols_changed: vec![SymbolChange { path: "src/auth/token.rs".into(), name: "refresh".into(), kind: SymbolKind::Fn, change: SymbolChangeKind::BodyChanged, old_path: None }],
+        symbols_changed: vec![SymbolChange {
+            path: "src/auth/token.rs".into(),
+            name: "refresh".into(),
+            kind: SymbolKind::Fn,
+            change: SymbolChangeKind::BodyChanged,
+            old_path: None,
+        }],
         claims_affected: vec![ClaimAffected {
             claim_id: claims[2].id.clone(),
-            causes: vec![Cause::FileChanged { path: "src/auth/token.rs".into(), before: Some(oid(0x55)), after: Some(oid(0x56)) }],
+            causes: vec![Cause::FileChanged {
+                path: "src/auth/token.rs".into(),
+                before: Some(oid(0x55)),
+                after: Some(oid(0x56)),
+            }],
         }],
         branch_changed: false,
         worktree_dirty_now: true,
@@ -146,7 +199,11 @@ pub fn fixtures(dir: &Path) -> Result<()> {
     write(dir, "claims.json", &serde_json::to_value(&claims)?)?;
     write(dir, "evals.json", &Value::Array(evals))?;
     write(dir, "drift.json", &serde_json::to_value(&drift)?)?;
-    write(dir, "meta.json", &json!({"packet_id": pkt, "leg_id": leg, "snapshot": snapshot}))?;
+    write(
+        dir,
+        "meta.json",
+        &json!({"packet_id": pkt, "leg_id": leg, "snapshot": snapshot}),
+    )?;
     eprintln!("gen-fixtures: wrote {}", dir.display());
     Ok(())
 }

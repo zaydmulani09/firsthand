@@ -35,7 +35,11 @@ fn main() -> Result<()> {
         Some("check-generated") => check_generated(&root),
         _ => {
             print!("{HELP}");
-            if args.is_empty() { Ok(()) } else { bail!("unknown task {:?}", args[0]) }
+            if args.is_empty() {
+                Ok(())
+            } else {
+                bail!("unknown task {:?}", args[0])
+            }
         }
     }
 }
@@ -50,7 +54,10 @@ fn root() -> PathBuf {
 
 fn run(cmd: &str, args: &[&str]) -> Result<()> {
     eprintln!("$ {cmd} {}", args.join(" "));
-    let st = Command::new(cmd).args(args).status().with_context(|| format!("spawn {cmd}"))?;
+    let st = Command::new(cmd)
+        .args(args)
+        .status()
+        .with_context(|| format!("spawn {cmd}"))?;
     if !st.success() {
         bail!("{cmd} {} failed ({st})", args.join(" "));
     }
@@ -59,7 +66,17 @@ fn run(cmd: &str, args: &[&str]) -> Result<()> {
 
 fn check(extra: &[String]) -> Result<()> {
     run("cargo", &["fmt", "--all", "--check"])?;
-    run("cargo", &["clippy", "--workspace", "--all-targets", "--", "-D", "warnings"])?;
+    run(
+        "cargo",
+        &[
+            "clippy",
+            "--workspace",
+            "--all-targets",
+            "--",
+            "-D",
+            "warnings",
+        ],
+    )?;
     run("cargo", &["test", "--workspace"])?;
     let root = root();
     lint_placeholders(&root, extra.iter().any(|a| a == "--phase0"))?;
@@ -76,11 +93,17 @@ fn files_under(root: &Path, dirs: &[&str], exts: &[&str]) -> Vec<PathBuf> {
         }
         for e in WalkDir::new(&p).into_iter().filter_entry(|e| {
             let n = e.file_name().to_string_lossy();
-            !matches!(n.as_ref(), "node_modules" | "target" | "dist" | ".git" | "internal" | "fixtures" | "vectors")
+            !matches!(
+                n.as_ref(),
+                "node_modules" | "target" | "dist" | ".git" | "internal" | "fixtures" | "vectors"
+            )
         }) {
             let Ok(e) = e else { continue };
             if e.file_type().is_file()
-                && e.path().extension().and_then(|x| x.to_str()).is_some_and(|x| exts.contains(&x))
+                && e.path()
+                    .extension()
+                    .and_then(|x| x.to_str())
+                    .is_some_and(|x| exts.contains(&x))
             {
                 v.push(e.into_path());
             }
@@ -90,7 +113,10 @@ fn files_under(root: &Path, dirs: &[&str], exts: &[&str]) -> Vec<PathBuf> {
 }
 
 fn rel(root: &Path, p: &Path) -> String {
-    p.strip_prefix(root).unwrap_or(p).to_string_lossy().replace('\\', "/")
+    p.strip_prefix(root)
+        .unwrap_or(p)
+        .to_string_lossy()
+        .replace('\\', "/")
 }
 
 /// Shipped paths: crate sources (not tests), packages, docs, README.
@@ -106,18 +132,33 @@ fn lint_placeholders(root: &Path, phase0: bool) -> Result<()> {
     dirs.extend(["packages", "docs", "README.md", "spec"].map(String::from));
     let dirs: Vec<&str> = dirs.iter().map(String::as_str).collect();
     // Built from parts so this file does not match itself.
-    let words = [["TO", "DO"].concat(), ["FIX", "ME"].concat(), ["lo", "rem ipsum"].concat()];
+    let words = [
+        ["TO", "DO"].concat(),
+        ["FIX", "ME"].concat(),
+        ["lo", "rem ipsum"].concat(),
+    ];
     let macros = [["todo", "!("].concat(), ["unimplemented", "!("].concat()];
     let nyi = ["NotYet", "Implemented"].concat();
-    let allow = std::fs::read_to_string(root.join("crates/xtask/placeholder-allow.txt")).unwrap_or_default();
-    let allowed: Vec<&str> = allow.lines().map(str::trim).filter(|l| !l.is_empty() && !l.starts_with('#')).collect();
+    let allow = std::fs::read_to_string(root.join("crates/xtask/placeholder-allow.txt"))
+        .unwrap_or_default();
+    let allowed: Vec<&str> = allow
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty() && !l.starts_with('#'))
+        .collect();
     let mut bad = Vec::new();
-    for f in files_under(root, &dirs, &["rs", "ts", "tsx", "js", "css", "html", "md", "json", "toml"]) {
+    for f in files_under(
+        root,
+        &dirs,
+        &["rs", "ts", "tsx", "js", "css", "html", "md", "json", "toml"],
+    ) {
         let r = rel(root, &f);
         if allowed.iter().any(|a| r.starts_with(a)) || r.contains("/tests/") {
             continue;
         }
-        let Ok(text) = std::fs::read_to_string(&f) else { continue };
+        let Ok(text) = std::fs::read_to_string(&f) else {
+            continue;
+        };
         let in_tests = text.find("#[cfg(test)]").unwrap_or(text.len());
         for (i, line) in text.lines().enumerate() {
             let offset: usize = text.lines().take(i).map(|l| l.len() + 1).sum();
@@ -125,8 +166,13 @@ fn lint_placeholders(root: &Path, phase0: bool) -> Result<()> {
                 break;
             }
             let lower = line.to_lowercase();
-            let hit = words.iter().any(|w| if w.contains(' ') { lower.contains(w) } else { line.contains(w.as_str()) })
-                || macros.iter().any(|m| line.contains(m.as_str()))
+            let hit = words.iter().any(|w| {
+                if w.contains(' ') {
+                    lower.contains(w)
+                } else {
+                    line.contains(w.as_str())
+                }
+            }) || macros.iter().any(|m| line.contains(m.as_str()))
                 || (!phase0 && line.contains(&nyi));
             if hit {
                 bad.push(format!("{r}:{}: {}", i + 1, line.trim()));
@@ -140,7 +186,10 @@ fn lint_placeholders(root: &Path, phase0: bool) -> Result<()> {
         for b in &bad {
             eprintln!("{b}");
         }
-        bail!("lint-placeholders: {} placeholder marker(s) in shipped paths", bad.len())
+        bail!(
+            "lint-placeholders: {} placeholder marker(s) in shipped paths",
+            bad.len()
+        )
     }
 }
 
@@ -148,31 +197,92 @@ fn lint_placeholders(root: &Path, phase0: bool) -> Result<()> {
 /// ("harness the power"), because the noun names the agent runtime that emits hooks.
 fn banned() -> Vec<(Regex, &'static str)> {
     let words = [
-        "delve", "intricate", "tapestry", "pivotal", "underscore", "landscape", "foster", "testament",
-        "enhance", "crucial", "journey", "passion", "seamless", "robust", "leverage", "unlock",
-        "empower", "cutting-edge", "game-changing", "revolutionary", "blazing", "supercharge",
-        "elevate", "furthermore", "additionally", "moreover",
+        "delve",
+        "intricate",
+        "tapestry",
+        "pivotal",
+        "underscore",
+        "landscape",
+        "foster",
+        "testament",
+        "enhance",
+        "crucial",
+        "journey",
+        "passion",
+        "seamless",
+        "robust",
+        "leverage",
+        "unlock",
+        "empower",
+        "cutting-edge",
+        "game-changing",
+        "revolutionary",
+        "blazing",
+        "supercharge",
+        "elevate",
+        "furthermore",
+        "additionally",
+        "moreover",
     ];
     let mut v: Vec<(Regex, &'static str)> = words
         .iter()
-        .map(|w| (Regex::new(&format!(r"(?i)\b{}\w*", regex::escape(w))).expect("static regex"), *w))
+        .map(|w| {
+            (
+                Regex::new(&format!(r"(?i)\b{}\w*", regex::escape(w))).expect("static regex"),
+                *w,
+            )
+        })
         .collect();
-    v.push((Regex::new(r"(?i)\bharness(es|ed|ing)?\s+(the|your|its|their|this)\b").expect("static regex"), "harness (verb)"));
-    v.push((Regex::new(r"(?i)\bstreamlin(e|es|ed|ing)\b\s+\w").expect("static regex"), "streamline (verb)"));
-    v.push((Regex::new(r"(?i)in today's fast-paced|in the world of|in conclusion").expect("static regex"), "stock phrase"));
+    v.push((
+        Regex::new(r"(?i)\bharness(es|ed|ing)?\s+(the|your|its|their|this)\b")
+            .expect("static regex"),
+        "harness (verb)",
+    ));
+    v.push((
+        Regex::new(r"(?i)\bstreamlin(e|es|ed|ing)\b\s+\w").expect("static regex"),
+        "streamline (verb)",
+    ));
+    v.push((
+        Regex::new(r"(?i)in today's fast-paced|in the world of|in conclusion")
+            .expect("static regex"),
+        "stock phrase",
+    ));
     v
 }
 
 fn lint_copy(root: &Path) -> Result<()> {
-    let dirs = ["README.md", "CHANGELOG.md", "SECURITY.md", "CONTRIBUTING.md", "docs", "spec", "crates", "packages", ".github", "action", "bench"];
+    let dirs = [
+        "README.md",
+        "CHANGELOG.md",
+        "SECURITY.md",
+        "CONTRIBUTING.md",
+        "docs",
+        "spec",
+        "crates",
+        "packages",
+        ".github",
+        "action",
+        "bench",
+    ];
     let mut bad = Vec::new();
     let rules = banned();
-    for f in files_under(root, &dirs, &["md", "rs", "ts", "tsx", "js", "css", "html", "yml", "yaml", "toml", "json", "txt"]) {
+    for f in files_under(
+        root,
+        &dirs,
+        &[
+            "md", "rs", "ts", "tsx", "js", "css", "html", "yml", "yaml", "toml", "json", "txt",
+        ],
+    ) {
         let r = rel(root, &f);
-        if r.starts_with("crates/xtask/") || r.ends_with("Cargo.lock") || r.contains("package-lock.json") {
+        if r.starts_with("crates/xtask/")
+            || r.ends_with("Cargo.lock")
+            || r.contains("package-lock.json")
+        {
             continue;
         }
-        let Ok(text) = std::fs::read_to_string(&f) else { continue };
+        let Ok(text) = std::fs::read_to_string(&f) else {
+            continue;
+        };
         for (i, line) in text.lines().enumerate() {
             if line.contains('\u{2014}') || line.contains('\u{2013}') {
                 bad.push(format!("{r}:{}: em or en dash", i + 1));
@@ -217,6 +327,9 @@ fn check_generated(root: &Path) -> Result<()> {
         eprintln!("check-generated: ok");
         Ok(())
     } else {
-        bail!("generated schema out of date (run cargo xtask gen-schema): {}", diffs.join(", "))
+        bail!(
+            "generated schema out of date (run cargo xtask gen-schema): {}",
+            diffs.join(", ")
+        )
     }
 }
