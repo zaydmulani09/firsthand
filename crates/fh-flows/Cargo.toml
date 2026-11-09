@@ -1,0 +1,15 @@
+[package]
+name = "fh-flows"
+description = "Seal, receive, verify and replay flows shared by the CLI, MCP server, dashboard and benchmark"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+
+[dependencies]
+fh-core.workspace = true
+
+[lints]
+workspace = true

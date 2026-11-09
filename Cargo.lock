@@ -502,7 +502,6 @@ version = "0.1.0"
 dependencies = [
  "fh-core",
  "fh-git",
- "fh-ledger",
  "fh-sem",
  "fh-testkit",
  "globset",
@@ -540,6 +539,13 @@ dependencies = [
  "fh-core",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "fh-flows"
+version = "0.1.0"
+dependencies = [
+ "fh-core",
 ]
 
 [[package]]
@@ -617,6 +623,7 @@ version = "0.1.0"
 dependencies = [
  "blake3",
  "fh-core",
+ "fh-git",
  "proptest",
  "serde",
  "serde_json",

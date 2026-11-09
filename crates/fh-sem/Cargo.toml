@@ -10,6 +10,7 @@ authors.workspace = true
 
 [dependencies]
 fh-core.workspace = true
+fh-git.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

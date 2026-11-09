@@ -12,7 +12,7 @@ authors.workspace = true
 fh-core.workspace = true
 fh-git.workspace = true
 fh-sem.workspace = true
-fh-ledger.workspace = true
+
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

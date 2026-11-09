@@ -26,6 +26,7 @@ fh-mcp = { path = "crates/fh-mcp" }
 fh-ui = { path = "crates/fh-ui" }
 fh-bench = { path = "crates/fh-bench" }
 fh-testkit = { path = "crates/fh-testkit" }
+fh-flows = { path = "crates/fh-flows" }
 anyhow = "1.0.104"
 assert_cmd = "2.2.2"
 axum = "0.8.9"
