@@ -1,0 +1,45 @@
+{
+  "head_relation": {
+    "type": "ahead",
+    "n": 4
+  },
+  "commits_since_anchor": 4,
+  "files_changed": [
+    {
+      "status": "M",
+      "path": "src/auth/token.rs",
+      "old_path": null
+    },
+    {
+      "status": "A",
+      "path": "docs/notes.md",
+      "old_path": null
+    }
+  ],
+  "symbols_changed": [
+    {
+      "path": "src/auth/token.rs",
+      "name": "refresh",
+      "kind": "fn",
+      "change": "body_changed",
+      "old_path": null
+    }
+  ],
+  "claims_affected": [
+    {
+      "claim_id": "clm_01a1c08983807aad93583dd5e7a6d7e8",
+      "causes": [
+        {
+          "type": "file_changed",
+          "path": "src/auth/token.rs",
+          "before": "5555555555555555555555555555555555555555",
+          "after": "5656565656565656565656565656565656565656"
+        }
+      ]
+    }
+  ],
+  "branch_changed": false,
+  "worktree_dirty_now": true,
+  "current_tree": "9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a9a",
+  "notes": []
+}

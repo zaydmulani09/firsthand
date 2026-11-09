@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NoteBody",
+  "description": "Body of a `note` entry.",
+  "type": "object",
+  "properties": {
+    "text": {
+      "description": "Note text (redacted).",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "text"
+  ]
+}

@@ -17,7 +17,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 /// A kind of identifier, defining its prefix.
 pub trait IdKind {
-    /// Prefix including the underscore, e.g. `"pkt_"`.
+    /// Prefix including the trailing `_`, e.g. `"pkt_"`.
     const PREFIX: &'static str;
 }
 

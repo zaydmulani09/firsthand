@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BriefDeliveredBody",
+  "description": "Body of a `brief_delivered` entry.",
+  "type": "object",
+  "properties": {
+    "packet_id": {
+      "description": "Packet delivered.",
+      "$ref": "#/$defs/Id_pkt"
+    },
+    "agent": {
+      "description": "Receiving agent.",
+      "$ref": "#/$defs/AgentId"
+    },
+    "session_id": {
+      "description": "Receiving session.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "packet_id",
+    "agent"
+  ],
+  "$defs": {
+    "Id_pkt": {
+      "type": "string",
+      "pattern": "^pkt_[0-9a-f]{32}$"
+    },
+    "AgentId": {
+      "description": "Supported agents.",
+      "oneOf": [
+        {
+          "description": "Claude Code.",
+          "type": "string",
+          "const": "claude-code"
+        },
+        {
+          "description": "OpenAI Codex CLI.",
+          "type": "string",
+          "const": "codex"
+        },
+        {
+          "description": "Gemini CLI.",
+          "type": "string",
+          "const": "gemini-cli"
+        },
+        {
+          "description": "OpenCode.",
+          "type": "string",
+          "const": "opencode"
+        },
+        {
+          "description": "Any other agent, through `firsthand run`, MCP, or the CLI.",
+          "type": "string",
+          "const": "generic"
+        }
+      ]
+    }
+  }
+}

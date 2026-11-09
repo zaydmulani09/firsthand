@@ -1,0 +1,54 @@
+[
+  {
+    "claim_id": "clm_01a1c08983807428b3885c4b9d153e7c",
+    "status": "verified",
+    "tier": "replayed",
+    "causes": [],
+    "evidence": {
+      "leg": "leg_01a1c08983807ec5982e9d39a4dbbc73",
+      "seq": 4,
+      "hash": "b3:846333980f613b6bffc8021457063c938c56ae0cee82eb27c27cc625c2ca116a"
+    },
+    "result": null,
+    "detail": "cargo test -p fh-core ok (142 passed)",
+    "suggested_probe": null,
+    "needs_approval": null
+  },
+  {
+    "claim_id": "clm_01a1c0898380791b827e470de873568f",
+    "status": "holds",
+    "tier": "witnessed",
+    "causes": [],
+    "evidence": null,
+    "result": null,
+    "detail": "scope unchanged since witnessed pass",
+    "suggested_probe": null,
+    "needs_approval": null
+  },
+  {
+    "claim_id": "clm_01a1c08983807aad93583dd5e7a6d7e8",
+    "status": "unverified",
+    "tier": "reported",
+    "causes": [],
+    "evidence": null,
+    "result": null,
+    "detail": "no probe attached",
+    "suggested_probe": "a test that exercises token refresh",
+    "needs_approval": null
+  },
+  {
+    "claim_id": "clm_01a1c08983807a49bc42c7a08110dd63",
+    "status": "refuted",
+    "tier": "witnessed",
+    "causes": [],
+    "evidence": {
+      "leg": "leg_01a1c08983807ec5982e9d39a4dbbc73",
+      "seq": 18,
+      "hash": "b3:d1ac88954433030fd8ec502d8ce2e7a9613cf7e912126f3fa7702729cff19e71"
+    },
+    "result": null,
+    "detail": "cargo test exited 101 at tree 8e8e8e8 (17 passed, 2 failed)",
+    "suggested_probe": null,
+    "needs_approval": null
+  }
+]

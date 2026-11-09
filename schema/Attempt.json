@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Attempt",
+  "description": "Something that was tried and did not work.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "description": "Attempt id.",
+      "$ref": "#/$defs/Id_att"
+    },
+    "what": {
+      "description": "What was tried.",
+      "type": "string"
+    },
+    "outcome": {
+      "description": "Outcome.",
+      "$ref": "#/$defs/AttemptOutcome"
+    },
+    "why": {
+      "description": "Why it failed or was abandoned.",
+      "type": "string"
+    },
+    "evidence": {
+      "description": "Supporting ledger entries.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/LedgerRef"
+      }
+    },
+    "leg": {
+      "description": "Leg.",
+      "$ref": "#/$defs/Id_leg"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "what",
+    "outcome",
+    "why",
+    "evidence",
+    "leg"
+  ],
+  "$defs": {
+    "Id_att": {
+      "type": "string",
+      "pattern": "^att_[0-9a-f]{32}$"
+    },
+    "AttemptOutcome": {
+      "description": "Outcome of an attempt.",
+      "oneOf": [
+        {
+          "description": "Failed.",
+          "type": "string",
+          "const": "failed"
+        },
+        {
+          "description": "Abandoned.",
+          "type": "string",
+          "const": "abandoned"
+        },
+        {
+          "description": "Partially worked.",
+          "type": "string",
+          "const": "partial"
+        }
+      ]
+    },
+    "LedgerRef": {
+      "description": "Reference to one ledger entry.",
+      "type": "object",
+      "properties": {
+        "leg": {
+          "description": "Leg id.",
+          "$ref": "#/$defs/Id_leg"
+        },
+        "seq": {
+          "description": "Sequence number within the leg.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "hash": {
+          "description": "Hash of the entry.",
+          "$ref": "#/$defs/B3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "leg",
+        "seq",
+        "hash"
+      ]
+    },
+    "Id_leg": {
+      "type": "string",
+      "pattern": "^leg_[0-9a-f]{32}$"
+    },
+    "B3": {
+      "type": "string",
+      "pattern": "^b3:[0-9a-f]{64}$"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RepoConfig",
+  "description": "Repo-level `firsthand.toml`. A cloned repo is untrusted input, so this file can\nonly suggest probes and scopes. Any allowlist, approval, trust or env key is\nrejected by `deny_unknown_fields`.",
+  "type": "object",
+  "properties": {
+    "probes": {
+      "description": "Suggested probes, shown to the user, never auto-trusted.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SuggestedProbe"
+      },
+      "default": []
+    },
+    "default_scopes": {
+      "description": "Default scope globs for `run` and `claim add`.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "SuggestedProbe": {
+      "description": "A suggested probe in `firsthand.toml`.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Label.",
+          "type": "string"
+        },
+        "argv": {
+          "description": "argv, still subject to the user's policy.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scope": {
+          "description": "Optional scope globs.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "argv"
+      ]
+    }
+  }
+}

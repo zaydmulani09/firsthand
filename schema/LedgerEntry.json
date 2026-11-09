@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LedgerEntry",
+  "description": "One hash-chained ledger line.",
+  "type": "object",
+  "properties": {
+    "v": {
+      "description": "Format version, always 1.",
+      "type": "integer",
+      "format": "uint8",
+      "minimum": 0,
+      "maximum": 255
+    },
+    "seq": {
+      "description": "Sequence number, starting at 0 per leg.",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "prev": {
+      "description": "Hash of the previous entry; for seq 0, `blake3(\"firsthand.ledger/1\" || leg_id)`.",
+      "$ref": "#/$defs/B3"
+    },
+    "ts": {
+      "description": "Event time.",
+      "$ref": "#/$defs/Ts"
+    },
+    "leg": {
+      "description": "Leg id.",
+      "$ref": "#/$defs/Id_leg"
+    },
+    "kind": {
+      "description": "Entry kind.",
+      "$ref": "#/$defs/EntryKind"
+    },
+    "witness": {
+      "description": "How the entry reached the ledger.",
+      "$ref": "#/$defs/Witness"
+    },
+    "body": {
+      "description": "Kind-specific body, integers only."
+    },
+    "hash": {
+      "description": "`blake3(canonical(entry without hash))`.",
+      "$ref": "#/$defs/B3"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "v",
+    "seq",
+    "prev",
+    "ts",
+    "leg",
+    "kind",
+    "witness",
+    "body",
+    "hash"
+  ],
+  "$defs": {
+    "B3": {
+      "type": "string",
+      "pattern": "^b3:[0-9a-f]{64}$"
+    },
+    "Ts": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "Id_leg": {
+      "type": "string",
+      "pattern": "^leg_[0-9a-f]{32}$"
+    },
+    "EntryKind": {
+      "description": "Kind of ledger entry.",
+      "oneOf": [
+        {
+          "description": "Leg started.",
+          "type": "string",
+          "const": "leg_start"
+        },
+        {
+          "description": "A command ran.",
+          "type": "string",
+          "const": "command"
+        },
+        {
+          "description": "A file was written, edited, deleted or renamed by a tool.",
+          "type": "string",
+          "const": "file_edit"
+        },
+        {
+          "description": "A parsed test result.",
+          "type": "string",
+          "const": "test_result"
+        },
+        {
+          "description": "A snapshot was taken.",
+          "type": "string",
+          "const": "snapshot"
+        },
+        {
+          "description": "Free text note.",
+          "type": "string",
+          "const": "note"
+        },
+        {
+          "description": "Claim create/update/verify.",
+          "type": "string",
+          "const": "claim"
+        },
+        {
+          "description": "Decision op.",
+          "type": "string",
+          "const": "decision"
+        },
+        {
+          "description": "Task op.",
+          "type": "string",
+          "const": "task"
+        },
+        {
+          "description": "Attempt op.",
+          "type": "string",
+          "const": "attempt"
+        },
+        {
+          "description": "A session log was ingested.",
+          "type": "string",
+          "const": "ingest"
+        },
+        {
+          "description": "A brief was delivered to an agent session.",
+          "type": "string",
+          "const": "brief_delivered"
+        },
+        {
+          "description": "Another tool event, summarized.",
+          "type": "string",
+          "const": "tool_other"
+        },
+        {
+          "description": "Leg ended.",
+          "type": "string",
+          "const": "leg_end"
+        }
+      ]
+    },
+    "Witness": {
+      "description": "Witness metadata of a ledger entry.",
+      "type": "object",
+      "properties": {
+        "channel": {
+          "description": "Channel, set by the entry point.",
+          "$ref": "#/$defs/Channel"
+        },
+        "agent": {
+          "description": "Agent that produced the event.",
+          "$ref": "#/$defs/AgentId"
+        },
+        "agent_session": {
+          "description": "Agent session id.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tool_use_id": {
+          "description": "Harness tool use id, for pairing Pre and Post events.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "channel",
+        "agent"
+      ]
+    },
+    "Channel": {
+      "description": "How an event reached the ledger. Assigned by entry point code, never read from input.",
+      "oneOf": [
+        {
+          "description": "Harness hook event.",
+          "type": "string",
+          "const": "hook"
+        },
+        {
+          "description": "`firsthand run`.",
+          "type": "string",
+          "const": "run"
+        },
+        {
+          "description": "MCP tool call.",
+          "type": "string",
+          "const": "mcp"
+        },
+        {
+          "description": "`firsthand note`, `claim`, `task`.",
+          "type": "string",
+          "const": "cli"
+        },
+        {
+          "description": "Parsed from a session log.",
+          "type": "string",
+          "const": "ingest"
+        },
+        {
+          "description": "Parsed from a markdown handoff.",
+          "type": "string",
+          "const": "import"
+        }
+      ]
+    },
+    "AgentId": {
+      "description": "Supported agents.",
+      "oneOf": [
+        {
+          "description": "Claude Code.",
+          "type": "string",
+          "const": "claude-code"
+        },
+        {
+          "description": "OpenAI Codex CLI.",
+          "type": "string",
+          "const": "codex"
+        },
+        {
+          "description": "Gemini CLI.",
+          "type": "string",
+          "const": "gemini-cli"
+        },
+        {
+          "description": "OpenCode.",
+          "type": "string",
+          "const": "opencode"
+        },
+        {
+          "description": "Any other agent, through `firsthand run`, MCP, or the CLI.",
+          "type": "string",
+          "const": "generic"
+        }
+      ]
+    }
+  }
+}

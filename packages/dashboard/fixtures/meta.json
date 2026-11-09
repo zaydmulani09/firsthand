@@ -1,0 +1,13 @@
+{
+  "packet_id": "pkt_01a1c0898380735caac63d87fc8cfc0d",
+  "leg_id": "leg_01a1c08983807ec5982e9d39a4dbbc73",
+  "snapshot": {
+    "id": "snp_01a1c08983807a4886f19f9a75d84171",
+    "commit": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f",
+    "tree": "8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e",
+    "base": "1212121212121212121212121212121212121212",
+    "ref_name": "refs/firsthand/snapshots/snp_01a1c08983807a4886f19f9a75d84171",
+    "kind": "handoff",
+    "created_at": "2026-11-09T13:40:00.000Z"
+  }
+}

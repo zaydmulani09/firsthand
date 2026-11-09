@@ -1,0 +1,2 @@
+# Paths (prefix match, repo-relative) exempt from lint-placeholders.
+# Test-only code belongs here; shipped code never does.

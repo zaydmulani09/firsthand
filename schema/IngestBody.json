@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IngestBody",
+  "description": "Body of an `ingest` entry.",
+  "type": "object",
+  "properties": {
+    "agent": {
+      "description": "Source agent.",
+      "$ref": "#/$defs/AgentId"
+    },
+    "session_id": {
+      "description": "Session id.",
+      "type": "string"
+    },
+    "source_hash": {
+      "description": "Hash of the source file bytes.",
+      "$ref": "#/$defs/B3"
+    },
+    "messages": {
+      "description": "Messages read.",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "tool_events": {
+      "description": "Tool events read.",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "claims_extracted": {
+      "description": "Claims extracted.",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "agent",
+    "session_id",
+    "source_hash",
+    "messages",
+    "tool_events",
+    "claims_extracted"
+  ],
+  "$defs": {
+    "AgentId": {
+      "description": "Supported agents.",
+      "oneOf": [
+        {
+          "description": "Claude Code.",
+          "type": "string",
+          "const": "claude-code"
+        },
+        {
+          "description": "OpenAI Codex CLI.",
+          "type": "string",
+          "const": "codex"
+        },
+        {
+          "description": "Gemini CLI.",
+          "type": "string",
+          "const": "gemini-cli"
+        },
+        {
+          "description": "OpenCode.",
+          "type": "string",
+          "const": "opencode"
+        },
+        {
+          "description": "Any other agent, through `firsthand run`, MCP, or the CLI.",
+          "type": "string",
+          "const": "generic"
+        }
+      ]
+    },
+    "B3": {
+      "type": "string",
+      "pattern": "^b3:[0-9a-f]{64}$"
+    }
+  }
+}

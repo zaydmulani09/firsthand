@@ -1,0 +1,2258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PacketBody",
+  "description": "`packet.json`.",
+  "type": "object",
+  "properties": {
+    "anchor": {
+      "description": "Anchor.",
+      "$ref": "#/$defs/RepoAnchor"
+    },
+    "legs": {
+      "description": "Legs in this packet, oldest first.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Leg"
+      }
+    },
+    "lineage": {
+      "description": "Ancestor summary.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/LineageNode"
+      }
+    },
+    "claims": {
+      "description": "Claims.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Claim"
+      }
+    },
+    "tasks": {
+      "description": "Tasks.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Task"
+      }
+    },
+    "decisions": {
+      "description": "Decisions.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Decision"
+      }
+    },
+    "attempts": {
+      "description": "Attempts.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Attempt"
+      }
+    },
+    "hearsay": {
+      "description": "Untrusted statements.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/HearsayItem"
+      }
+    },
+    "drift_baseline": {
+      "description": "Drift baseline.",
+      "$ref": "#/$defs/DriftBaseline"
+    },
+    "redaction": {
+      "description": "Redaction report.",
+      "$ref": "#/$defs/RedactionReport"
+    },
+    "seal": {
+      "description": "Seal info.",
+      "$ref": "#/$defs/SealInfo"
+    },
+    "extensions": {
+      "description": "Extensions; keys must start with `x-`.",
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "anchor",
+    "legs",
+    "lineage",
+    "claims",
+    "tasks",
+    "decisions",
+    "attempts",
+    "hearsay",
+    "drift_baseline",
+    "redaction",
+    "seal",
+    "extensions"
+  ],
+  "$defs": {
+    "RepoAnchor": {
+      "description": "The repo identity, HEAD, branch and snapshot a packet is true at.",
+      "type": "object",
+      "properties": {
+        "repo_id": {
+          "description": "BLAKE3 of the newline-joined sorted root commit oids. Stable across clones.",
+          "$ref": "#/$defs/B3"
+        },
+        "object_format": {
+          "description": "Object format of the repository.",
+          "$ref": "#/$defs/ObjectFormat"
+        },
+        "head": {
+          "description": "HEAD commit, `None` on an unborn branch.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GitOid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "branch": {
+          "description": "Branch name, `None` if detached.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "upstream": {
+          "description": "Upstream tracking ref, if any.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "snapshot": {
+          "description": "Snapshot of the full working state.",
+          "$ref": "#/$defs/SnapshotRef"
+        },
+        "worktree": {
+          "description": "Worktree information, without absolute paths.",
+          "$ref": "#/$defs/WorktreeInfo"
+        },
+        "dirty": {
+          "description": "Summary of uncommitted changes.",
+          "$ref": "#/$defs/DirtySummary"
+        },
+        "git_version": {
+          "description": "`git --version` output.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "repo_id",
+        "object_format",
+        "snapshot",
+        "worktree",
+        "dirty",
+        "git_version"
+      ]
+    },
+    "B3": {
+      "type": "string",
+      "pattern": "^b3:[0-9a-f]{64}$"
+    },
+    "ObjectFormat": {
+      "description": "Git object format.",
+      "oneOf": [
+        {
+          "description": "SHA-1, 40 hex digits.",
+          "type": "string",
+          "const": "sha1"
+        },
+        {
+          "description": "SHA-256, 64 hex digits.",
+          "type": "string",
+          "const": "sha256"
+        }
+      ]
+    },
+    "GitOid": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "SnapshotRef": {
+      "description": "A snapshot commit kept alive by a private ref.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Snapshot id.",
+          "$ref": "#/$defs/Id_snp"
+        },
+        "commit": {
+          "description": "Snapshot commit.",
+          "$ref": "#/$defs/GitOid"
+        },
+        "tree": {
+          "description": "Tree of the snapshot commit.",
+          "$ref": "#/$defs/GitOid"
+        },
+        "base": {
+          "description": "Parent commit (HEAD at snapshot time), if any.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GitOid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ref_name": {
+          "description": "Ref that keeps the commit alive, e.g. `refs/firsthand/snapshots/snp_...`.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Why the snapshot was taken.",
+          "$ref": "#/$defs/SnapshotKind"
+        },
+        "created_at": {
+          "description": "Creation time.",
+          "$ref": "#/$defs/Ts"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "commit",
+        "tree",
+        "ref_name",
+        "kind",
+        "created_at"
+      ]
+    },
+    "Id_snp": {
+      "type": "string",
+      "pattern": "^snp_[0-9a-f]{32}$"
+    },
+    "SnapshotKind": {
+      "description": "Why a snapshot was taken.",
+      "oneOf": [
+        {
+          "description": "`firsthand snapshot`.",
+          "type": "string",
+          "const": "manual"
+        },
+        {
+          "description": "Rotating automatic snapshot (Stop hook).",
+          "type": "string",
+          "const": "auto"
+        },
+        {
+          "description": "Taken while sealing a packet.",
+          "type": "string",
+          "const": "handoff"
+        },
+        {
+          "description": "Taken before a context compaction.",
+          "type": "string",
+          "const": "pre_compact"
+        },
+        {
+          "description": "Taken before `restore --apply`.",
+          "type": "string",
+          "const": "pre_restore"
+        }
+      ]
+    },
+    "Ts": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "WorktreeInfo": {
+      "description": "Linked worktree information.",
+      "type": "object",
+      "properties": {
+        "linked": {
+          "description": "Whether this is a linked worktree.",
+          "type": "boolean"
+        },
+        "name": {
+          "description": "Worktree name (directory name under `.git/worktrees`), if linked.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "linked"
+      ]
+    },
+    "DirtySummary": {
+      "description": "Counts of uncommitted changes and files deliberately left out.",
+      "type": "object",
+      "properties": {
+        "modified": {
+          "description": "Tracked files modified.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "added": {
+          "description": "Files added to the index or new.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "deleted": {
+          "description": "Tracked files deleted.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "untracked": {
+          "description": "Untracked, non-ignored files.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "omitted": {
+          "description": "Files that would have been captured but were excluded.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Omitted"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "modified",
+        "added",
+        "deleted",
+        "untracked",
+        "omitted"
+      ]
+    },
+    "Omitted": {
+      "description": "A file excluded from a snapshot, with the reason. Nothing is dropped silently.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "Repo-relative path with `/` separators.",
+          "type": "string"
+        },
+        "reason": {
+          "description": "Why it was excluded.",
+          "$ref": "#/$defs/OmitReason"
+        },
+        "bytes": {
+          "description": "Size in bytes, if known.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "hash": {
+          "description": "BLAKE3 of the content, if computed (never for secrets).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/B3"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "reason"
+      ]
+    },
+    "OmitReason": {
+      "description": "Reason a file was excluded from a snapshot.",
+      "oneOf": [
+        {
+          "description": "Path matched a secret glob.",
+          "type": "string",
+          "const": "secret_pattern"
+        },
+        {
+          "description": "Content matched a secret rule.",
+          "type": "string",
+          "const": "secret_content"
+        },
+        {
+          "description": "Larger than `snapshot.max_file_bytes`.",
+          "type": "string",
+          "const": "too_large"
+        },
+        {
+          "description": "Submodule content (recorded as a gitlink only).",
+          "type": "string",
+          "const": "submodule"
+        }
+      ]
+    },
+    "Leg": {
+      "description": "One contiguous stretch of work by one agent session.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Leg id.",
+          "$ref": "#/$defs/Id_leg"
+        },
+        "agent": {
+          "description": "The agent.",
+          "$ref": "#/$defs/AgentRef"
+        },
+        "agent_session": {
+          "description": "The agent's own session id, if known.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "started_at": {
+          "description": "Start time.",
+          "$ref": "#/$defs/Ts"
+        },
+        "ended_at": {
+          "description": "End time.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ts"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "anchor_start": {
+          "description": "Snapshot at leg start.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SnapshotRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "anchor_end": {
+          "description": "Snapshot at leg end.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SnapshotRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parent_packet": {
+          "description": "Packet this leg continued from.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PacketRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "outcome": {
+          "description": "How the leg ended.",
+          "$ref": "#/$defs/LegOutcome"
+        },
+        "ledger": {
+          "description": "Ledger range covered by this leg.",
+          "$ref": "#/$defs/LedgerRange"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "agent",
+        "started_at",
+        "outcome",
+        "ledger"
+      ]
+    },
+    "Id_leg": {
+      "type": "string",
+      "pattern": "^leg_[0-9a-f]{32}$"
+    },
+    "AgentRef": {
+      "description": "Agent identity and version.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Agent id.",
+          "$ref": "#/$defs/AgentId"
+        },
+        "version": {
+          "description": "Agent version, from `--version` or hook payloads.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model": {
+          "description": "Model name, if the harness reports it.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ]
+    },
+    "AgentId": {
+      "description": "Supported agents.",
+      "oneOf": [
+        {
+          "description": "Claude Code.",
+          "type": "string",
+          "const": "claude-code"
+        },
+        {
+          "description": "OpenAI Codex CLI.",
+          "type": "string",
+          "const": "codex"
+        },
+        {
+          "description": "Gemini CLI.",
+          "type": "string",
+          "const": "gemini-cli"
+        },
+        {
+          "description": "OpenCode.",
+          "type": "string",
+          "const": "opencode"
+        },
+        {
+          "description": "Any other agent, through `firsthand run`, MCP, or the CLI.",
+          "type": "string",
+          "const": "generic"
+        }
+      ]
+    },
+    "PacketRef": {
+      "description": "Reference to a packet by id and manifest hash.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Packet id.",
+          "$ref": "#/$defs/Id_pkt"
+        },
+        "manifest_hash": {
+          "description": "BLAKE3 of the canonical manifest.",
+          "$ref": "#/$defs/B3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "manifest_hash"
+      ]
+    },
+    "Id_pkt": {
+      "type": "string",
+      "pattern": "^pkt_[0-9a-f]{32}$"
+    },
+    "LegOutcome": {
+      "description": "How a leg ended.",
+      "oneOf": [
+        {
+          "description": "Still running.",
+          "type": "string",
+          "const": "open"
+        },
+        {
+          "description": "Sealed into a packet.",
+          "type": "string",
+          "const": "handed_off"
+        },
+        {
+          "description": "Finished the work.",
+          "type": "string",
+          "const": "completed"
+        },
+        {
+          "description": "Ended without a handoff.",
+          "type": "string",
+          "const": "abandoned"
+        },
+        {
+          "description": "Context compacted.",
+          "type": "string",
+          "const": "compacted"
+        }
+      ]
+    },
+    "LedgerRange": {
+      "description": "Range of a leg's ledger.",
+      "type": "object",
+      "properties": {
+        "first_seq": {
+          "description": "First sequence number.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "last_seq": {
+          "description": "Last sequence number.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "head_hash": {
+          "description": "Hash of the last entry.",
+          "$ref": "#/$defs/B3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "first_seq",
+        "last_seq",
+        "head_hash"
+      ]
+    },
+    "LineageNode": {
+      "description": "Ancestor summary in a packet's lineage.",
+      "type": "object",
+      "properties": {
+        "packet_id": {
+          "description": "Packet id.",
+          "$ref": "#/$defs/Id_pkt"
+        },
+        "manifest_hash": {
+          "description": "Manifest hash.",
+          "$ref": "#/$defs/B3"
+        },
+        "agent": {
+          "description": "Agent that sealed it.",
+          "$ref": "#/$defs/AgentId"
+        },
+        "sealed_at": {
+          "description": "Seal time.",
+          "$ref": "#/$defs/Ts"
+        },
+        "status_counts": {
+          "description": "Claim status counts at seal time.",
+          "$ref": "#/$defs/StatusCounts"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "packet_id",
+        "manifest_hash",
+        "agent",
+        "sealed_at",
+        "status_counts"
+      ]
+    },
+    "StatusCounts": {
+      "description": "Claim counts by status.",
+      "type": "object",
+      "properties": {
+        "verified": {
+          "description": "Verified.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "holds": {
+          "description": "Holds.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "stale": {
+          "description": "Stale.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "refuted": {
+          "description": "Refuted.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "unverified": {
+          "description": "Unverified.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "unknown": {
+          "description": "Unknown.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "verified",
+        "holds",
+        "stale",
+        "refuted",
+        "unverified",
+        "unknown"
+      ]
+    },
+    "Claim": {
+      "description": "A statement about the repo or the work, with scope, probe and results.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Claim id.",
+          "$ref": "#/$defs/Id_clm"
+        },
+        "text": {
+          "description": "Claim text (agent-authored text is untrusted).",
+          "type": "string"
+        },
+        "category": {
+          "description": "Category.",
+          "$ref": "#/$defs/ClaimCategory"
+        },
+        "origin": {
+          "description": "Who asserted it.",
+          "$ref": "#/$defs/ClaimOrigin"
+        },
+        "scope": {
+          "description": "What it depends on.",
+          "$ref": "#/$defs/Scope"
+        },
+        "probe": {
+          "description": "How to check it.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Probe"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "results": {
+          "description": "Probe results so far.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProbeResult"
+          }
+        },
+        "created_at": {
+          "description": "Creation time.",
+          "$ref": "#/$defs/Ts"
+        },
+        "leg": {
+          "description": "Leg that created it.",
+          "$ref": "#/$defs/Id_leg"
+        },
+        "ledger_ref": {
+          "description": "Ledger entry that created it.",
+          "$ref": "#/$defs/LedgerRef"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "category",
+        "origin",
+        "scope",
+        "results",
+        "created_at",
+        "leg",
+        "ledger_ref"
+      ]
+    },
+    "Id_clm": {
+      "type": "string",
+      "pattern": "^clm_[0-9a-f]{32}$"
+    },
+    "ClaimCategory": {
+      "description": "Claim category.",
+      "oneOf": [
+        {
+          "description": "A witnessed verification command succeeded.",
+          "type": "string",
+          "const": "command_succeeded"
+        },
+        {
+          "description": "A witnessed verification command failed.",
+          "type": "string",
+          "const": "command_failed"
+        },
+        {
+          "description": "Tests pass.",
+          "type": "string",
+          "const": "tests_pass"
+        },
+        {
+          "description": "Build succeeds.",
+          "type": "string",
+          "const": "build_ok"
+        },
+        {
+          "description": "Lint is clean.",
+          "type": "string",
+          "const": "lint_ok"
+        },
+        {
+          "description": "A file was created.",
+          "type": "string",
+          "const": "file_created"
+        },
+        {
+          "description": "A file was modified.",
+          "type": "string",
+          "const": "file_modified"
+        },
+        {
+          "description": "A file was deleted.",
+          "type": "string",
+          "const": "file_deleted"
+        },
+        {
+          "description": "A symbol was added.",
+          "type": "string",
+          "const": "symbol_added"
+        },
+        {
+          "description": "A refactor is complete.",
+          "type": "string",
+          "const": "refactor_done"
+        },
+        {
+          "description": "A bug was fixed.",
+          "type": "string",
+          "const": "bug_fixed"
+        },
+        {
+          "description": "A task is done.",
+          "type": "string",
+          "const": "task_done"
+        },
+        {
+          "description": "A statement about a branch.",
+          "type": "string",
+          "const": "branch"
+        },
+        {
+          "description": "Anything else.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "ClaimOrigin": {
+      "description": "Who asserted a claim and how confident the source is.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "Source kind.",
+          "$ref": "#/$defs/OriginSource"
+        },
+        "agent": {
+          "description": "Agent, if any.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence_permille": {
+          "description": "Confidence in permille (0 to 1000). Integer, never a float.",
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0,
+          "maximum": 65535
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "confidence_permille"
+      ]
+    },
+    "OriginSource": {
+      "description": "Origin of a claim.",
+      "oneOf": [
+        {
+          "description": "Derived from witnessed events.",
+          "type": "string",
+          "const": "witnessed"
+        },
+        {
+          "description": "Declared by the agent.",
+          "type": "string",
+          "const": "agent_declared"
+        },
+        {
+          "description": "Declared by a human.",
+          "type": "string",
+          "const": "human"
+        },
+        {
+          "description": "Extracted from transcript narration.",
+          "type": "string",
+          "const": "transcript_extracted"
+        },
+        {
+          "description": "Imported from a markdown handoff.",
+          "type": "string",
+          "const": "imported"
+        }
+      ]
+    },
+    "Scope": {
+      "description": "What a claim depends on.",
+      "oneOf": [
+        {
+          "description": "The whole tree.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "repo"
+            },
+            "tree": {
+              "description": "Tree oid at anchor time.",
+              "$ref": "#/$defs/GitOid"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "tree"
+          ]
+        },
+        {
+          "description": "Specific files and symbols.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "items"
+            },
+            "files": {
+              "description": "Files with blob oids.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ScopedFile"
+              }
+            },
+            "symbols": {
+              "description": "Symbols with body and signature hashes.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ScopedSymbol"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "files",
+            "symbols"
+          ]
+        }
+      ]
+    },
+    "ScopedFile": {
+      "description": "A file in a claim scope.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "Repo-relative path.",
+          "type": "string"
+        },
+        "blob": {
+          "description": "Blob at anchor time; `None` means absent at anchor.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GitOid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path"
+      ]
+    },
+    "ScopedSymbol": {
+      "description": "A symbol in a claim scope.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "File containing the symbol at anchor time.",
+          "type": "string"
+        },
+        "name": {
+          "description": "Symbol name.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Symbol kind.",
+          "$ref": "#/$defs/SymbolKind"
+        },
+        "body_hash": {
+          "description": "Formatting-insensitive body hash.",
+          "$ref": "#/$defs/B3"
+        },
+        "sig_hash": {
+          "description": "Signature hash.",
+          "$ref": "#/$defs/B3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "name",
+        "kind",
+        "body_hash",
+        "sig_hash"
+      ]
+    },
+    "SymbolKind": {
+      "description": "Kind of source symbol.",
+      "oneOf": [
+        {
+          "description": "Free function.",
+          "type": "string",
+          "const": "fn"
+        },
+        {
+          "description": "Method.",
+          "type": "string",
+          "const": "method"
+        },
+        {
+          "description": "Class.",
+          "type": "string",
+          "const": "class"
+        },
+        {
+          "description": "Struct.",
+          "type": "string",
+          "const": "struct"
+        },
+        {
+          "description": "Enum.",
+          "type": "string",
+          "const": "enum"
+        },
+        {
+          "description": "Trait.",
+          "type": "string",
+          "const": "trait"
+        },
+        {
+          "description": "Interface.",
+          "type": "string",
+          "const": "interface"
+        },
+        {
+          "description": "Type alias.",
+          "type": "string",
+          "const": "type"
+        },
+        {
+          "description": "Constant.",
+          "type": "string",
+          "const": "const"
+        },
+        {
+          "description": "Module or namespace.",
+          "type": "string",
+          "const": "module"
+        }
+      ]
+    },
+    "Probe": {
+      "description": "A checkable procedure attached to a claim. Everything except `Command` is static.",
+      "oneOf": [
+        {
+          "description": "File exists in the tree.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "file_exists"
+            },
+            "path": {
+              "description": "Path.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path"
+          ]
+        },
+        {
+          "description": "File is absent from the tree.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "file_absent"
+            },
+            "path": {
+              "description": "Path.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path"
+          ]
+        },
+        {
+          "description": "File has exactly this blob.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "file_hash"
+            },
+            "path": {
+              "description": "Path.",
+              "type": "string"
+            },
+            "blob": {
+              "description": "Expected blob.",
+              "$ref": "#/$defs/GitOid"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path",
+            "blob"
+          ]
+        },
+        {
+          "description": "File content matches a regex at least `min` times.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "file_contains"
+            },
+            "path": {
+              "description": "Path.",
+              "type": "string"
+            },
+            "pattern": {
+              "description": "Rust regex syntax.",
+              "type": "string"
+            },
+            "min": {
+              "description": "Minimum matches.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path",
+            "pattern",
+            "min"
+          ]
+        },
+        {
+          "description": "Number of files matching a glob compares to `n`.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "glob_count"
+            },
+            "glob": {
+              "description": "Glob.",
+              "type": "string"
+            },
+            "op": {
+              "description": "Comparison.",
+              "$ref": "#/$defs/CmpOp"
+            },
+            "n": {
+              "description": "Count.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "glob",
+            "op",
+            "n"
+          ]
+        },
+        {
+          "description": "A commit exists.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "git_commit_exists"
+            },
+            "oid": {
+              "description": "Commit.",
+              "$ref": "#/$defs/GitOid"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "oid"
+          ]
+        },
+        {
+          "description": "A branch points at a commit.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "git_branch_at"
+            },
+            "branch": {
+              "description": "Branch name.",
+              "type": "string"
+            },
+            "oid": {
+              "description": "Commit.",
+              "$ref": "#/$defs/GitOid"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "branch",
+            "oid"
+          ]
+        },
+        {
+          "description": "A path has no uncommitted changes.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "git_path_clean"
+            },
+            "path": {
+              "description": "Path.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path"
+          ]
+        },
+        {
+          "description": "A symbol is defined.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "symbol_defined"
+            },
+            "path": {
+              "description": "Restrict to a file.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "name": {
+              "description": "Name.",
+              "type": "string"
+            },
+            "kind": {
+              "description": "Restrict to a kind.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SymbolKind"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "name"
+          ]
+        },
+        {
+          "description": "No symbol with this name exists.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "symbol_absent"
+            },
+            "name": {
+              "description": "Name.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "name"
+          ]
+        },
+        {
+          "description": "A symbol body has exactly this hash.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "symbol_hash"
+            },
+            "path": {
+              "description": "File.",
+              "type": "string"
+            },
+            "name": {
+              "description": "Name.",
+              "type": "string"
+            },
+            "body_hash": {
+              "description": "Expected body hash.",
+              "$ref": "#/$defs/B3"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path",
+            "name",
+            "body_hash"
+          ]
+        },
+        {
+          "description": "Cross-check against the latest witnessed verification command. Executes nothing.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "ledger_verification"
+            },
+            "kind": {
+              "description": "Kind of verification.",
+              "$ref": "#/$defs/VerificationKind"
+            },
+            "matcher": {
+              "description": "Optional argv prefix filter.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CommandMatcher"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "require": {
+              "description": "What counts as passing.",
+              "$ref": "#/$defs/LedgerRequire"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "kind",
+            "require"
+          ]
+        },
+        {
+          "description": "Execute a program. Policy gated.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "command"
+            },
+            "argv": {
+              "description": "argv.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "cwd_rel": {
+              "description": "Working directory relative to the repo root.",
+              "type": "string"
+            },
+            "shell": {
+              "description": "Run through a shell (requires `allow_shell` and explicit approval).",
+              "type": "boolean"
+            },
+            "timeout_s": {
+              "description": "Timeout in seconds.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            },
+            "expect": {
+              "description": "Expected outcome.",
+              "$ref": "#/$defs/Expect"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "argv",
+            "cwd_rel",
+            "shell",
+            "timeout_s",
+            "expect"
+          ]
+        },
+        {
+          "description": "All sub-probes must pass.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "all"
+            },
+            "probes": {
+              "description": "Sub-probes.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Probe"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "probes"
+          ]
+        }
+      ]
+    },
+    "CmpOp": {
+      "description": "Comparison operator.",
+      "oneOf": [
+        {
+          "description": "Equal.",
+          "type": "string",
+          "const": "eq"
+        },
+        {
+          "description": "Not equal.",
+          "type": "string",
+          "const": "ne"
+        },
+        {
+          "description": "Less than.",
+          "type": "string",
+          "const": "lt"
+        },
+        {
+          "description": "Less or equal.",
+          "type": "string",
+          "const": "le"
+        },
+        {
+          "description": "Greater than.",
+          "type": "string",
+          "const": "gt"
+        },
+        {
+          "description": "Greater or equal.",
+          "type": "string",
+          "const": "ge"
+        }
+      ]
+    },
+    "VerificationKind": {
+      "description": "Kind of verification command.",
+      "oneOf": [
+        {
+          "description": "Test runner.",
+          "type": "string",
+          "const": "test"
+        },
+        {
+          "description": "Build.",
+          "type": "string",
+          "const": "build"
+        },
+        {
+          "description": "Linter.",
+          "type": "string",
+          "const": "lint"
+        },
+        {
+          "description": "Type checker.",
+          "type": "string",
+          "const": "typecheck"
+        },
+        {
+          "description": "Recognized but uncategorized.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "CommandMatcher": {
+      "description": "Filters witnessed commands by argv prefix.",
+      "type": "object",
+      "properties": {
+        "argv_prefix": {
+          "description": "argv prefix.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "argv_prefix"
+      ]
+    },
+    "LedgerRequire": {
+      "description": "Requirement for a ledger verification probe.",
+      "oneOf": [
+        {
+          "description": "Exit code 0.",
+          "type": "string",
+          "const": "exit_zero"
+        },
+        {
+          "description": "Parsed tests: zero failed and more than zero passed.",
+          "type": "string",
+          "const": "tests_all_pass"
+        }
+      ]
+    },
+    "Expect": {
+      "description": "Expected outcome of a command probe.",
+      "type": "object",
+      "properties": {
+        "exit": {
+          "description": "Expected exit code.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "stdout_regex": {
+          "description": "stdout must match.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stderr_absent_regex": {
+          "description": "stderr must not match.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProbeResult": {
+      "description": "Result of evaluating a probe.",
+      "type": "object",
+      "properties": {
+        "probe_hash": {
+          "description": "Hash of the canonical probe.",
+          "$ref": "#/$defs/B3"
+        },
+        "outcome": {
+          "description": "Outcome.",
+          "$ref": "#/$defs/Outcome"
+        },
+        "by": {
+          "description": "Who evaluated it.",
+          "$ref": "#/$defs/ResultBy"
+        },
+        "tree": {
+          "description": "Tree it was evaluated against.",
+          "$ref": "#/$defs/GitOid"
+        },
+        "evaluated_at": {
+          "description": "When.",
+          "$ref": "#/$defs/Ts"
+        },
+        "duration_ms": {
+          "description": "Duration in milliseconds.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "evidence": {
+          "description": "Evidence blob (command output).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BlobRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "detail": {
+          "description": "Human-readable detail.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "probe_hash",
+        "outcome",
+        "by",
+        "tree",
+        "evaluated_at",
+        "duration_ms",
+        "detail"
+      ]
+    },
+    "Outcome": {
+      "description": "Probe outcome.",
+      "oneOf": [
+        {
+          "description": "Passed.",
+          "type": "string",
+          "const": "pass"
+        },
+        {
+          "description": "Failed.",
+          "type": "string",
+          "const": "fail"
+        },
+        {
+          "description": "Could not run (spawn failure, parse error).",
+          "type": "string",
+          "const": "error"
+        },
+        {
+          "description": "Timed out.",
+          "type": "string",
+          "const": "timeout"
+        },
+        {
+          "description": "Needs approval before it can run.",
+          "type": "string",
+          "const": "needs_approval"
+        },
+        {
+          "description": "Not run (policy or options).",
+          "type": "string",
+          "const": "skipped"
+        }
+      ]
+    },
+    "ResultBy": {
+      "description": "Who produced a probe result.",
+      "oneOf": [
+        {
+          "description": "Witnessed during the session.",
+          "type": "string",
+          "const": "witness"
+        },
+        {
+          "description": "Evaluated while sealing.",
+          "type": "string",
+          "const": "seal"
+        },
+        {
+          "description": "Evaluated by the receiver.",
+          "type": "string",
+          "const": "replay"
+        }
+      ]
+    },
+    "BlobRef": {
+      "description": "Reference to a stored output blob.",
+      "type": "object",
+      "properties": {
+        "hash": {
+          "description": "Hash of the stored (redacted, possibly truncated) bytes.",
+          "$ref": "#/$defs/B3"
+        },
+        "bytes": {
+          "description": "Original size.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "stored_bytes": {
+          "description": "Stored size.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "truncated": {
+          "description": "Whether the middle was elided.",
+          "type": "boolean"
+        },
+        "redacted": {
+          "description": "Whether redaction replaced anything.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "hash",
+        "bytes",
+        "stored_bytes",
+        "truncated",
+        "redacted"
+      ]
+    },
+    "LedgerRef": {
+      "description": "Reference to one ledger entry.",
+      "type": "object",
+      "properties": {
+        "leg": {
+          "description": "Leg id.",
+          "$ref": "#/$defs/Id_leg"
+        },
+        "seq": {
+          "description": "Sequence number within the leg.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "hash": {
+          "description": "Hash of the entry.",
+          "$ref": "#/$defs/B3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "leg",
+        "seq",
+        "hash"
+      ]
+    },
+    "Task": {
+      "description": "A task in the task DAG.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Task id.",
+          "$ref": "#/$defs/Id_tsk"
+        },
+        "title": {
+          "description": "Title (untrusted when agent-authored).",
+          "type": "string"
+        },
+        "detail": {
+          "description": "Detail.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "description": "Status.",
+          "$ref": "#/$defs/TaskStatus"
+        },
+        "deps": {
+          "description": "Dependencies.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Id_tsk"
+          }
+        },
+        "created_leg": {
+          "description": "Leg that created it.",
+          "$ref": "#/$defs/Id_leg"
+        },
+        "updated_leg": {
+          "description": "Leg that last updated it.",
+          "$ref": "#/$defs/Id_leg"
+        },
+        "evidence": {
+          "description": "Claims offered as evidence of completion.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Id_clm"
+          }
+        },
+        "history": {
+          "description": "Status history.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TaskEvent"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "status",
+        "deps",
+        "created_leg",
+        "updated_leg",
+        "evidence",
+        "history"
+      ]
+    },
+    "Id_tsk": {
+      "type": "string",
+      "pattern": "^tsk_[0-9a-f]{32}$"
+    },
+    "TaskStatus": {
+      "description": "Task status.",
+      "oneOf": [
+        {
+          "description": "Not started.",
+          "type": "string",
+          "const": "todo"
+        },
+        {
+          "description": "In progress.",
+          "type": "string",
+          "const": "doing"
+        },
+        {
+          "description": "Blocked.",
+          "type": "string",
+          "const": "blocked"
+        },
+        {
+          "description": "Done.",
+          "type": "string",
+          "const": "done"
+        },
+        {
+          "description": "Dropped.",
+          "type": "string",
+          "const": "dropped"
+        }
+      ]
+    },
+    "TaskEvent": {
+      "description": "One change in a task's history.",
+      "type": "object",
+      "properties": {
+        "at": {
+          "description": "When.",
+          "$ref": "#/$defs/Ts"
+        },
+        "leg": {
+          "description": "Which leg.",
+          "$ref": "#/$defs/Id_leg"
+        },
+        "status": {
+          "description": "New status.",
+          "$ref": "#/$defs/TaskStatus"
+        },
+        "note": {
+          "description": "Optional note.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "at",
+        "leg",
+        "status"
+      ]
+    },
+    "Decision": {
+      "description": "A decision with its reasons and constraint strength.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Decision id.",
+          "$ref": "#/$defs/Id_dec"
+        },
+        "text": {
+          "description": "What was decided.",
+          "type": "string"
+        },
+        "why": {
+          "description": "Why.",
+          "type": "string"
+        },
+        "alternatives": {
+          "description": "Rejected alternatives.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Alternative"
+          }
+        },
+        "constraint": {
+          "description": "Constraint strength.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConstraintKind"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scope": {
+          "description": "What it applies to.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Scope"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "leg": {
+          "description": "Leg that made it.",
+          "$ref": "#/$defs/Id_leg"
+        },
+        "origin": {
+          "description": "Who made it.",
+          "$ref": "#/$defs/ClaimOrigin"
+        },
+        "supersedes": {
+          "description": "Decision this one replaces.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id_dec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "active": {
+          "description": "Whether it is still in force.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "why",
+        "alternatives",
+        "leg",
+        "origin",
+        "active"
+      ]
+    },
+    "Id_dec": {
+      "type": "string",
+      "pattern": "^dec_[0-9a-f]{32}$"
+    },
+    "Alternative": {
+      "description": "A rejected alternative.",
+      "type": "object",
+      "properties": {
+        "text": {
+          "description": "The alternative.",
+          "type": "string"
+        },
+        "why_rejected": {
+          "description": "Why it was rejected.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ]
+    },
+    "ConstraintKind": {
+      "description": "Constraint strength. `must` and `must_not` are never dropped from briefs.",
+      "oneOf": [
+        {
+          "description": "Required.",
+          "type": "string",
+          "const": "must"
+        },
+        {
+          "description": "Forbidden.",
+          "type": "string",
+          "const": "must_not"
+        },
+        {
+          "description": "Preferred.",
+          "type": "string",
+          "const": "prefer"
+        }
+      ]
+    },
+    "Attempt": {
+      "description": "Something that was tried and did not work.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Attempt id.",
+          "$ref": "#/$defs/Id_att"
+        },
+        "what": {
+          "description": "What was tried.",
+          "type": "string"
+        },
+        "outcome": {
+          "description": "Outcome.",
+          "$ref": "#/$defs/AttemptOutcome"
+        },
+        "why": {
+          "description": "Why it failed or was abandoned.",
+          "type": "string"
+        },
+        "evidence": {
+          "description": "Supporting ledger entries.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LedgerRef"
+          }
+        },
+        "leg": {
+          "description": "Leg.",
+          "$ref": "#/$defs/Id_leg"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "what",
+        "outcome",
+        "why",
+        "evidence",
+        "leg"
+      ]
+    },
+    "Id_att": {
+      "type": "string",
+      "pattern": "^att_[0-9a-f]{32}$"
+    },
+    "AttemptOutcome": {
+      "description": "Outcome of an attempt.",
+      "oneOf": [
+        {
+          "description": "Failed.",
+          "type": "string",
+          "const": "failed"
+        },
+        {
+          "description": "Abandoned.",
+          "type": "string",
+          "const": "abandoned"
+        },
+        {
+          "description": "Partially worked.",
+          "type": "string",
+          "const": "partial"
+        }
+      ]
+    },
+    "HearsayItem": {
+      "description": "A transcript-extracted or imported statement. Always untrusted.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "Where it came from.",
+          "$ref": "#/$defs/OriginSource"
+        },
+        "agent": {
+          "description": "Agent, if known.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "quote": {
+          "description": "Quote, redacted, at most 240 characters.",
+          "type": "string"
+        },
+        "claim": {
+          "description": "Claim extracted from this quote, if any.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id_clm"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ts": {
+          "description": "Timestamp in the source, if any.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ts"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "quote"
+      ]
+    },
+    "DriftBaseline": {
+      "description": "Per-scope hashes at seal time, used to compute drift later.",
+      "type": "object",
+      "properties": {
+        "anchor_tree": {
+          "description": "Snapshot tree at seal.",
+          "$ref": "#/$defs/GitOid"
+        },
+        "files": {
+          "description": "Files referenced by any claim scope.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScopedFile"
+          }
+        },
+        "symbols": {
+          "description": "Symbols referenced by any claim scope.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScopedSymbol"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "anchor_tree",
+        "files",
+        "symbols"
+      ]
+    },
+    "RedactionReport": {
+      "description": "Redaction counts per rule. Never contains secret values.",
+      "type": "object",
+      "properties": {
+        "rules_version": {
+          "description": "Rules version.",
+          "type": "string"
+        },
+        "findings": {
+          "description": "Total replacements.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "per_rule": {
+          "description": "Replacements per rule id.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          }
+        },
+        "excluded_files": {
+          "description": "Files excluded from the snapshot as secrets.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "overlay": {
+          "description": "Whether a seal-time overlay map was needed.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "rules_version",
+        "findings",
+        "per_rule",
+        "excluded_files",
+        "overlay"
+      ]
+    },
+    "SealInfo": {
+      "description": "Who sealed a packet and why.",
+      "type": "object",
+      "properties": {
+        "sealed_by": {
+          "description": "Sealing agent.",
+          "$ref": "#/$defs/AgentRef"
+        },
+        "sealed_at": {
+          "description": "Seal time.",
+          "$ref": "#/$defs/Ts"
+        },
+        "reason": {
+          "description": "Free-text reason.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "target_agent": {
+          "description": "Intended receiver.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "firsthand_version": {
+          "description": "Firsthand version.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "sealed_by",
+        "sealed_at",
+        "firsthand_version"
+      ]
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OpBody",
+  "description": "Body of `claim`, `decision`, `task`, `attempt` entries: an op plus a full object or patch.",
+  "type": "object",
+  "properties": {
+    "op": {
+      "description": "Operation name.",
+      "$ref": "#/$defs/Op"
+    },
+    "id": {
+      "description": "Target id, for ops on an existing object.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "data": {
+      "description": "Full object (create, supersede) or patch (update)."
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "op",
+    "data"
+  ],
+  "$defs": {
+    "Op": {
+      "description": "Mutation operation on claims, tasks, decisions and attempts.",
+      "oneOf": [
+        {
+          "description": "Create a new object.",
+          "type": "string",
+          "const": "create"
+        },
+        {
+          "description": "Patch fields.",
+          "type": "string",
+          "const": "update"
+        },
+        {
+          "description": "Record a probe result.",
+          "type": "string",
+          "const": "verify"
+        },
+        {
+          "description": "Replace with a new object.",
+          "type": "string",
+          "const": "supersede"
+        },
+        {
+          "description": "Mark a task done.",
+          "type": "string",
+          "const": "done"
+        },
+        {
+          "description": "Mark a task blocked.",
+          "type": "string",
+          "const": "block"
+        },
+        {
+          "description": "Drop a task.",
+          "type": "string",
+          "const": "drop"
+        }
+      ]
+    }
+  }
+}

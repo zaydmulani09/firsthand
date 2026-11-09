@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Task",
+  "description": "A task in the task DAG.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "description": "Task id.",
+      "$ref": "#/$defs/Id_tsk"
+    },
+    "title": {
+      "description": "Title (untrusted when agent-authored).",
+      "type": "string"
+    },
+    "detail": {
+      "description": "Detail.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "description": "Status.",
+      "$ref": "#/$defs/TaskStatus"
+    },
+    "deps": {
+      "description": "Dependencies.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Id_tsk"
+      }
+    },
+    "created_leg": {
+      "description": "Leg that created it.",
+      "$ref": "#/$defs/Id_leg"
+    },
+    "updated_leg": {
+      "description": "Leg that last updated it.",
+      "$ref": "#/$defs/Id_leg"
+    },
+    "evidence": {
+      "description": "Claims offered as evidence of completion.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Id_clm"
+      }
+    },
+    "history": {
+      "description": "Status history.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TaskEvent"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "status",
+    "deps",
+    "created_leg",
+    "updated_leg",
+    "evidence",
+    "history"
+  ],
+  "$defs": {
+    "Id_tsk": {
+      "type": "string",
+      "pattern": "^tsk_[0-9a-f]{32}$"
+    },
+    "TaskStatus": {
+      "description": "Task status.",
+      "oneOf": [
+        {
+          "description": "Not started.",
+          "type": "string",
+          "const": "todo"
+        },
+        {
+          "description": "In progress.",
+          "type": "string",
+          "const": "doing"
+        },
+        {
+          "description": "Blocked.",
+          "type": "string",
+          "const": "blocked"
+        },
+        {
+          "description": "Done.",
+          "type": "string",
+          "const": "done"
+        },
+        {
+          "description": "Dropped.",
+          "type": "string",
+          "const": "dropped"
+        }
+      ]
+    },
+    "Id_leg": {
+      "type": "string",
+      "pattern": "^leg_[0-9a-f]{32}$"
+    },
+    "Id_clm": {
+      "type": "string",
+      "pattern": "^clm_[0-9a-f]{32}$"
+    },
+    "TaskEvent": {
+      "description": "One change in a task's history.",
+      "type": "object",
+      "properties": {
+        "at": {
+          "description": "When.",
+          "$ref": "#/$defs/Ts"
+        },
+        "leg": {
+          "description": "Which leg.",
+          "$ref": "#/$defs/Id_leg"
+        },
+        "status": {
+          "description": "New status.",
+          "$ref": "#/$defs/TaskStatus"
+        },
+        "note": {
+          "description": "Optional note.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "at",
+        "leg",
+        "status"
+      ]
+    },
+    "Ts": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    }
+  }
+}

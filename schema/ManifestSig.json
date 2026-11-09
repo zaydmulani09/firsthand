@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ManifestSig",
+  "description": "`manifest.sig`.",
+  "type": "object",
+  "properties": {
+    "alg": {
+      "description": "Always `ed25519`.",
+      "type": "string"
+    },
+    "key_fp": {
+      "description": "`fp:` plus the first 16 hex of blake3(pubkey).",
+      "type": "string"
+    },
+    "pubkey": {
+      "description": "Public key, standard base64.",
+      "type": "string"
+    },
+    "sig": {
+      "description": "Signature, standard base64.",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "alg",
+    "key_fp",
+    "pubkey",
+    "sig"
+  ]
+}

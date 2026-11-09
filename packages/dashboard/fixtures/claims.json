@@ -1,0 +1,119 @@
+[
+  {
+    "id": "clm_01a1c08983807428b3885c4b9d153e7c",
+    "text": "cargo test -p fh-core ok (142 passed)",
+    "category": "command_succeeded",
+    "origin": {
+      "source": "witnessed",
+      "agent": "claude-code",
+      "confidence_permille": 600
+    },
+    "scope": {
+      "type": "repo",
+      "tree": "8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e"
+    },
+    "probe": {
+      "type": "ledger_verification",
+      "kind": "test",
+      "matcher": null,
+      "require": "tests_all_pass"
+    },
+    "results": [],
+    "created_at": "2026-11-09T13:40:00.000Z",
+    "leg": "leg_01a1c08983807ec5982e9d39a4dbbc73",
+    "ledger_ref": {
+      "leg": "leg_01a1c08983807ec5982e9d39a4dbbc73",
+      "seq": 4,
+      "hash": "b3:846333980f613b6bffc8021457063c938c56ae0cee82eb27c27cc625c2ca116a"
+    }
+  },
+  {
+    "id": "clm_01a1c0898380791b827e470de873568f",
+    "text": "src/auth.rs exists",
+    "category": "file_created",
+    "origin": {
+      "source": "transcript_extracted",
+      "agent": "claude-code",
+      "confidence_permille": 600
+    },
+    "scope": {
+      "type": "items",
+      "files": [
+        {
+          "path": "src/auth.rs",
+          "blob": "4444444444444444444444444444444444444444"
+        }
+      ],
+      "symbols": []
+    },
+    "probe": {
+      "type": "file_exists",
+      "path": "src/auth.rs"
+    },
+    "results": [],
+    "created_at": "2026-11-09T13:40:00.000Z",
+    "leg": "leg_01a1c08983807ec5982e9d39a4dbbc73",
+    "ledger_ref": {
+      "leg": "leg_01a1c08983807ec5982e9d39a4dbbc73",
+      "seq": 9,
+      "hash": "b3:b8955078e2c8ea364d1c09298fa47e928718cdec5ccb0670bbd4abcd6392d7e1"
+    }
+  },
+  {
+    "id": "clm_01a1c08983807aad93583dd5e7a6d7e8",
+    "text": "token refresh works",
+    "category": "bug_fixed",
+    "origin": {
+      "source": "agent_declared",
+      "agent": "claude-code",
+      "confidence_permille": 600
+    },
+    "scope": {
+      "type": "items",
+      "files": [
+        {
+          "path": "src/auth/token.rs",
+          "blob": "5555555555555555555555555555555555555555"
+        }
+      ],
+      "symbols": []
+    },
+    "probe": null,
+    "results": [],
+    "created_at": "2026-11-09T13:40:00.000Z",
+    "leg": "leg_01a1c08983807ec5982e9d39a4dbbc73",
+    "ledger_ref": {
+      "leg": "leg_01a1c08983807ec5982e9d39a4dbbc73",
+      "seq": 12,
+      "hash": "b3:cb0a92dc1310165905495a3e8dc6a8385e4adae4bd56f585f69d9b72134a72df"
+    }
+  },
+  {
+    "id": "clm_01a1c08983807a49bc42c7a08110dd63",
+    "text": "all tests pass",
+    "category": "tests_pass",
+    "origin": {
+      "source": "transcript_extracted",
+      "agent": "claude-code",
+      "confidence_permille": 600
+    },
+    "scope": {
+      "type": "repo",
+      "tree": "8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e"
+    },
+    "probe": {
+      "type": "ledger_verification",
+      "kind": "test",
+      "matcher": null,
+      "require": "tests_all_pass"
+    },
+    "results": [],
+    "created_at": "2026-11-09T13:40:00.000Z",
+    "leg": "leg_01a1c08983807ec5982e9d39a4dbbc73",
+    "ledger_ref": {
+      "leg": "leg_01a1c08983807ec5982e9d39a4dbbc73",
+      "seq": 20,
+      "hash": "b3:600e8b92b2eb4d84f1940c491cc587e25c06f283e9b1d7abaac7aafb24bd3c84"
+    }
+  }
+]

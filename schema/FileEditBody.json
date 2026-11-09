@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FileEditBody",
+  "description": "Body of a `file_edit` entry.",
+  "type": "object",
+  "properties": {
+    "path": {
+      "description": "Repo-relative path.",
+      "type": "string"
+    },
+    "op": {
+      "description": "Operation.",
+      "$ref": "#/$defs/FileOp"
+    },
+    "before_blob": {
+      "description": "Blob before.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GitOid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "after_blob": {
+      "description": "Blob after.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GitOid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tool": {
+      "description": "Tool name reported by the harness.",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "path",
+    "op",
+    "tool"
+  ],
+  "$defs": {
+    "FileOp": {
+      "description": "File operation.",
+      "oneOf": [
+        {
+          "description": "Whole-file write.",
+          "type": "string",
+          "const": "write"
+        },
+        {
+          "description": "In-place edit.",
+          "type": "string",
+          "const": "edit"
+        },
+        {
+          "description": "Deletion.",
+          "type": "string",
+          "const": "delete"
+        },
+        {
+          "description": "Rename.",
+          "type": "string",
+          "const": "rename"
+        }
+      ]
+    },
+    "GitOid": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    }
+  }
+}

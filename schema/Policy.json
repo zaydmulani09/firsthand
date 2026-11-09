@@ -1,0 +1,329 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Policy",
+  "description": "Full policy. Missing sections take defaults.",
+  "type": "object",
+  "properties": {
+    "exec": {
+      "description": "Command execution rules.",
+      "$ref": "#/$defs/ExecPolicy",
+      "default": {
+        "allow": [
+          [
+            "cargo",
+            "test"
+          ],
+          [
+            "cargo",
+            "build"
+          ],
+          [
+            "cargo",
+            "clippy"
+          ],
+          [
+            "npm",
+            "test"
+          ],
+          [
+            "npm",
+            "run",
+            "test"
+          ],
+          [
+            "pnpm",
+            "test"
+          ],
+          [
+            "pytest"
+          ],
+          [
+            "python",
+            "-m",
+            "pytest"
+          ],
+          [
+            "py",
+            "-m",
+            "pytest"
+          ],
+          [
+            "go",
+            "test"
+          ]
+        ],
+        "deny_always": [
+          "sudo",
+          "rm",
+          "del",
+          "curl",
+          "wget",
+          "Invoke-WebRequest",
+          "powershell",
+          "pwsh",
+          "cmd",
+          "sh",
+          "bash"
+        ],
+        "allow_shell": false,
+        "timeout_s": 300,
+        "max_output_bytes": 1048576,
+        "env_passthrough": [],
+        "auto_run_for_trusted_packets": true
+      }
+    },
+    "witness": {
+      "description": "Witness behavior.",
+      "$ref": "#/$defs/WitnessPolicy",
+      "default": {
+        "verification_patterns": [],
+        "auto_snapshot_on_stop": true,
+        "auto_snapshots_keep": 20
+      }
+    },
+    "snapshot": {
+      "description": "Snapshot limits and exclusions.",
+      "$ref": "#/$defs/SnapshotPolicy",
+      "default": {
+        "max_file_bytes": 5242880,
+        "exclude_globs": [
+          "**/.env",
+          "**/.env.*",
+          "**/*.pem",
+          "**/*.key",
+          "**/id_rsa*",
+          "**/id_ed25519*",
+          "**/*.p12",
+          "**/*.pfx",
+          "**/credentials*",
+          "**/.npmrc",
+          "**/.pypirc",
+          "**/secrets.*"
+        ]
+      }
+    },
+    "brief": {
+      "description": "Brief settings.",
+      "$ref": "#/$defs/BriefPolicy",
+      "default": {
+        "budget_tokens": 6000
+      }
+    },
+    "packet": {
+      "description": "Packet limits.",
+      "$ref": "#/$defs/PacketPolicy",
+      "default": {
+        "max_bytes": 52428800
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "ExecPolicy": {
+      "description": "Command execution policy.",
+      "type": "object",
+      "properties": {
+        "allow": {
+          "description": "Allowed argv prefixes.",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "default": [
+            [
+              "cargo",
+              "test"
+            ],
+            [
+              "cargo",
+              "build"
+            ],
+            [
+              "cargo",
+              "clippy"
+            ],
+            [
+              "npm",
+              "test"
+            ],
+            [
+              "npm",
+              "run",
+              "test"
+            ],
+            [
+              "pnpm",
+              "test"
+            ],
+            [
+              "pytest"
+            ],
+            [
+              "python",
+              "-m",
+              "pytest"
+            ],
+            [
+              "py",
+              "-m",
+              "pytest"
+            ],
+            [
+              "go",
+              "test"
+            ]
+          ]
+        },
+        "deny_always": {
+          "description": "Program names that are never run.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "sudo",
+            "rm",
+            "del",
+            "curl",
+            "wget",
+            "Invoke-WebRequest",
+            "powershell",
+            "pwsh",
+            "cmd",
+            "sh",
+            "bash"
+          ]
+        },
+        "allow_shell": {
+          "description": "Whether shell probes are possible at all (still need approval).",
+          "type": "boolean",
+          "default": false
+        },
+        "timeout_s": {
+          "description": "Default timeout in seconds.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0,
+          "default": 300
+        },
+        "max_output_bytes": {
+          "description": "Output cap in bytes.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0,
+          "default": 1048576
+        },
+        "env_passthrough": {
+          "description": "Extra environment variable names passed to probes.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "auto_run_for_trusted_packets": {
+          "description": "Auto-run allowlisted commands for own and trusted packets.",
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "WitnessPolicy": {
+      "description": "Witness policy.",
+      "type": "object",
+      "properties": {
+        "verification_patterns": {
+          "description": "Extra verification argv prefixes, added to the built-in defaults.",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "default": []
+        },
+        "auto_snapshot_on_stop": {
+          "description": "Take an auto snapshot on Stop when the tree changed.",
+          "type": "boolean",
+          "default": true
+        },
+        "auto_snapshots_keep": {
+          "description": "Rotating auto snapshots to keep.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0,
+          "default": 20
+        }
+      },
+      "additionalProperties": false
+    },
+    "SnapshotPolicy": {
+      "description": "Snapshot policy.",
+      "type": "object",
+      "properties": {
+        "max_file_bytes": {
+          "description": "Files larger than this are omitted.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0,
+          "default": 5242880
+        },
+        "exclude_globs": {
+          "description": "Globs excluded as likely secrets.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/.env",
+            "**/.env.*",
+            "**/*.pem",
+            "**/*.key",
+            "**/id_rsa*",
+            "**/id_ed25519*",
+            "**/*.p12",
+            "**/*.pfx",
+            "**/credentials*",
+            "**/.npmrc",
+            "**/.pypirc",
+            "**/secrets.*"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "BriefPolicy": {
+      "description": "Brief policy.",
+      "type": "object",
+      "properties": {
+        "budget_tokens": {
+          "description": "Budget in estimated tokens (`ceil(bytes / 4)`).",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0,
+          "default": 6000
+        }
+      },
+      "additionalProperties": false
+    },
+    "PacketPolicy": {
+      "description": "Packet policy.",
+      "type": "object",
+      "properties": {
+        "max_bytes": {
+          "description": "Maximum packet size.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0,
+          "default": 52428800
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

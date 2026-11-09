@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Manifest",
+  "description": "`manifest.json`, the signed document.",
+  "type": "object",
+  "properties": {
+    "format": {
+      "description": "Always `firsthand.packet/1`.",
+      "type": "string"
+    },
+    "packet_id": {
+      "description": "Packet id.",
+      "$ref": "#/$defs/Id_pkt"
+    },
+    "created_at": {
+      "description": "Creation time.",
+      "$ref": "#/$defs/Ts"
+    },
+    "created_by": {
+      "description": "Tool identity.",
+      "$ref": "#/$defs/CreatedBy"
+    },
+    "repo": {
+      "description": "Repository identity.",
+      "$ref": "#/$defs/ManifestRepo"
+    },
+    "anchor": {
+      "description": "Anchor commits.",
+      "$ref": "#/$defs/ManifestAnchor"
+    },
+    "parent": {
+      "description": "Parent packet.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ManifestParent"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "parts": {
+      "description": "Every part with size and hash.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/PartEntry"
+      }
+    },
+    "redaction": {
+      "description": "Redaction summary.",
+      "$ref": "#/$defs/ManifestRedaction"
+    },
+    "limits": {
+      "description": "Limits.",
+      "$ref": "#/$defs/ManifestLimits"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "packet_id",
+    "created_at",
+    "created_by",
+    "repo",
+    "anchor",
+    "parts",
+    "redaction",
+    "limits"
+  ],
+  "$defs": {
+    "Id_pkt": {
+      "type": "string",
+      "pattern": "^pkt_[0-9a-f]{32}$"
+    },
+    "Ts": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "CreatedBy": {
+      "description": "Tool that created a packet.",
+      "type": "object",
+      "properties": {
+        "tool": {
+          "description": "Always `firsthand`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Version.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "version"
+      ]
+    },
+    "ManifestRepo": {
+      "description": "Repository identity in a manifest.",
+      "type": "object",
+      "properties": {
+        "repo_id": {
+          "description": "Repo id.",
+          "$ref": "#/$defs/B3"
+        },
+        "object_format": {
+          "description": "Object format.",
+          "$ref": "#/$defs/ObjectFormat"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "repo_id",
+        "object_format"
+      ]
+    },
+    "B3": {
+      "type": "string",
+      "pattern": "^b3:[0-9a-f]{64}$"
+    },
+    "ObjectFormat": {
+      "description": "Git object format.",
+      "oneOf": [
+        {
+          "description": "SHA-1, 40 hex digits.",
+          "type": "string",
+          "const": "sha1"
+        },
+        {
+          "description": "SHA-256, 64 hex digits.",
+          "type": "string",
+          "const": "sha256"
+        }
+      ]
+    },
+    "ManifestAnchor": {
+      "description": "Anchor commits in a manifest.",
+      "type": "object",
+      "properties": {
+        "head": {
+          "description": "HEAD.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GitOid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "snapshot_commit": {
+          "description": "Snapshot commit.",
+          "$ref": "#/$defs/GitOid"
+        },
+        "snapshot_tree": {
+          "description": "Snapshot tree.",
+          "$ref": "#/$defs/GitOid"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "snapshot_commit",
+        "snapshot_tree"
+      ]
+    },
+    "GitOid": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "ManifestParent": {
+      "description": "Parent reference in a manifest.",
+      "type": "object",
+      "properties": {
+        "packet_id": {
+          "description": "Parent packet id.",
+          "$ref": "#/$defs/Id_pkt"
+        },
+        "manifest_hash": {
+          "description": "Parent manifest hash.",
+          "$ref": "#/$defs/B3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "packet_id",
+        "manifest_hash"
+      ]
+    },
+    "PartEntry": {
+      "description": "One part of a packet.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "Path inside the ZIP.",
+          "type": "string"
+        },
+        "bytes": {
+          "description": "Uncompressed size.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "hash": {
+          "description": "BLAKE3 of the uncompressed bytes.",
+          "$ref": "#/$defs/B3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bytes",
+        "hash"
+      ]
+    },
+    "ManifestRedaction": {
+      "description": "Redaction summary in a manifest.",
+      "type": "object",
+      "properties": {
+        "rules_version": {
+          "description": "Rules version.",
+          "type": "string"
+        },
+        "findings": {
+          "description": "Total findings.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "overlay": {
+          "description": "Whether `blobs.json` overlay is present.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "rules_version",
+        "findings",
+        "overlay"
+      ]
+    },
+    "ManifestLimits": {
+      "description": "Limits declared by the packet.",
+      "type": "object",
+      "properties": {
+        "max_bytes": {
+          "description": "Maximum packet size in bytes.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "max_bytes"
+      ]
+    }
+  }
+}

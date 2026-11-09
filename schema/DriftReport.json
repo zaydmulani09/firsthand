@@ -1,0 +1,515 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DriftReport",
+  "description": "Difference between a packet's anchor and the receiver's current tree.",
+  "type": "object",
+  "properties": {
+    "head_relation": {
+      "description": "HEAD relation.",
+      "$ref": "#/$defs/HeadRelation"
+    },
+    "commits_since_anchor": {
+      "description": "Commits in HEAD not in the anchor.",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "files_changed": {
+      "description": "Files changed between the anchor snapshot tree and the current working tree.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/PathChange"
+      }
+    },
+    "symbols_changed": {
+      "description": "Symbols changed in those files (supported languages only).",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SymbolChange"
+      }
+    },
+    "claims_affected": {
+      "description": "Claims affected, with causes.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ClaimAffected"
+      }
+    },
+    "branch_changed": {
+      "description": "Whether the branch differs from the anchor.",
+      "type": "boolean"
+    },
+    "worktree_dirty_now": {
+      "description": "Whether the worktree has uncommitted changes now.",
+      "type": "boolean"
+    },
+    "current_tree": {
+      "description": "Current working tree oid (snapshot tree of the receiver state).",
+      "$ref": "#/$defs/GitOid"
+    },
+    "notes": {
+      "description": "What could not be computed, in plain words.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "head_relation",
+    "commits_since_anchor",
+    "files_changed",
+    "symbols_changed",
+    "claims_affected",
+    "branch_changed",
+    "worktree_dirty_now",
+    "current_tree",
+    "notes"
+  ],
+  "$defs": {
+    "HeadRelation": {
+      "description": "Relation of the current HEAD to an anchor commit.",
+      "oneOf": [
+        {
+          "description": "Same commit.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "same"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "description": "HEAD is `n` commits ahead of the anchor.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "ahead"
+            },
+            "n": {
+              "description": "Commits ahead.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "n"
+          ]
+        },
+        {
+          "description": "HEAD is `n` commits behind the anchor.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "behind"
+            },
+            "n": {
+              "description": "Commits behind.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "n"
+          ]
+        },
+        {
+          "description": "Both sides have commits.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "diverged"
+            },
+            "ahead": {
+              "description": "Commits only in HEAD.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            },
+            "behind": {
+              "description": "Commits only in the anchor.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "ahead",
+            "behind"
+          ]
+        },
+        {
+          "description": "No common history.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "unrelated"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "description": "The anchor commit is not in this clone.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "anchor_missing"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "PathChange": {
+      "description": "One entry of `git diff --name-status`.",
+      "type": "object",
+      "properties": {
+        "status": {
+          "description": "`A`, `M`, `D`, `R`, `C`, `T`.",
+          "type": "string"
+        },
+        "path": {
+          "description": "Path (new path for renames).",
+          "type": "string"
+        },
+        "old_path": {
+          "description": "Old path for renames and copies.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "path"
+      ]
+    },
+    "SymbolChange": {
+      "description": "A symbol-level change.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "File (new location for moves).",
+          "type": "string"
+        },
+        "name": {
+          "description": "Name.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Kind.",
+          "$ref": "#/$defs/SymbolKind"
+        },
+        "change": {
+          "description": "Change.",
+          "$ref": "#/$defs/SymbolChangeKind"
+        },
+        "old_path": {
+          "description": "Previous file, for moves.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "name",
+        "kind",
+        "change"
+      ]
+    },
+    "SymbolKind": {
+      "description": "Kind of source symbol.",
+      "oneOf": [
+        {
+          "description": "Free function.",
+          "type": "string",
+          "const": "fn"
+        },
+        {
+          "description": "Method.",
+          "type": "string",
+          "const": "method"
+        },
+        {
+          "description": "Class.",
+          "type": "string",
+          "const": "class"
+        },
+        {
+          "description": "Struct.",
+          "type": "string",
+          "const": "struct"
+        },
+        {
+          "description": "Enum.",
+          "type": "string",
+          "const": "enum"
+        },
+        {
+          "description": "Trait.",
+          "type": "string",
+          "const": "trait"
+        },
+        {
+          "description": "Interface.",
+          "type": "string",
+          "const": "interface"
+        },
+        {
+          "description": "Type alias.",
+          "type": "string",
+          "const": "type"
+        },
+        {
+          "description": "Constant.",
+          "type": "string",
+          "const": "const"
+        },
+        {
+          "description": "Module or namespace.",
+          "type": "string",
+          "const": "module"
+        }
+      ]
+    },
+    "SymbolChangeKind": {
+      "description": "Kind of symbol change.",
+      "oneOf": [
+        {
+          "description": "New symbol.",
+          "type": "string",
+          "const": "added"
+        },
+        {
+          "description": "Symbol removed.",
+          "type": "string",
+          "const": "removed"
+        },
+        {
+          "description": "Body changed.",
+          "type": "string",
+          "const": "body_changed"
+        },
+        {
+          "description": "Signature changed.",
+          "type": "string",
+          "const": "sig_changed"
+        },
+        {
+          "description": "Moved to another file with identical hashes.",
+          "type": "string",
+          "const": "moved"
+        }
+      ]
+    },
+    "ClaimAffected": {
+      "description": "A claim affected by drift and why.",
+      "type": "object",
+      "properties": {
+        "claim_id": {
+          "description": "Claim id.",
+          "$ref": "#/$defs/Id_clm"
+        },
+        "causes": {
+          "description": "Causes.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Cause"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "causes"
+      ]
+    },
+    "Id_clm": {
+      "type": "string",
+      "pattern": "^clm_[0-9a-f]{32}$"
+    },
+    "Cause": {
+      "description": "Why a claim is affected by drift.",
+      "oneOf": [
+        {
+          "description": "A scoped file changed.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "file_changed"
+            },
+            "path": {
+              "description": "Path.",
+              "type": "string"
+            },
+            "before": {
+              "description": "Blob at anchor.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/GitOid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "after": {
+              "description": "Blob now.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/GitOid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path"
+          ]
+        },
+        {
+          "description": "A scoped symbol changed.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "symbol_changed"
+            },
+            "path": {
+              "description": "File.",
+              "type": "string"
+            },
+            "name": {
+              "description": "Name.",
+              "type": "string"
+            },
+            "change": {
+              "description": "Change kind.",
+              "$ref": "#/$defs/SymbolChangeKind"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path",
+            "name",
+            "change"
+          ]
+        },
+        {
+          "description": "The repo tree changed (repo-scoped claims).",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "tree_changed"
+            },
+            "before": {
+              "description": "Tree at anchor.",
+              "$ref": "#/$defs/GitOid"
+            },
+            "after": {
+              "description": "Tree now.",
+              "$ref": "#/$defs/GitOid"
+            },
+            "sample_paths": {
+              "description": "Up to 20 changed paths, for the explanation.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "before",
+            "after",
+            "sample_paths"
+          ]
+        },
+        {
+          "description": "The branch differs from the anchor.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "branch_changed"
+            },
+            "before": {
+              "description": "Branch at anchor.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "after": {
+              "description": "Branch now.",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "description": "The anchor commit is missing locally.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "anchor_missing"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "GitOid": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    }
+  }
+}

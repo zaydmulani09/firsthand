@@ -1,0 +1,510 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ClaimEval",
+  "description": "The evaluated state of one claim against the receiver's tree.",
+  "type": "object",
+  "properties": {
+    "claim_id": {
+      "description": "Claim id.",
+      "$ref": "#/$defs/Id_clm"
+    },
+    "status": {
+      "description": "Computed status.",
+      "$ref": "#/$defs/ClaimStatus"
+    },
+    "tier": {
+      "description": "Trust tier of the evidence behind the status.",
+      "$ref": "#/$defs/Tier"
+    },
+    "causes": {
+      "description": "Drift causes (stale) or the contradiction (refuted).",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Cause"
+      }
+    },
+    "evidence": {
+      "description": "Ledger entry cited as evidence (refuted or witnessed).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LedgerRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "result": {
+      "description": "Probe result produced by this evaluation, if a probe ran.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ProbeResult"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "detail": {
+      "description": "One-line explanation shown to humans.",
+      "type": "string"
+    },
+    "suggested_probe": {
+      "description": "For unverified claims: the probe that would settle it, in words.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "needs_approval": {
+      "description": "For commands that need approval: the exact argv.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "claim_id",
+    "status",
+    "tier",
+    "causes",
+    "detail"
+  ],
+  "$defs": {
+    "Id_clm": {
+      "type": "string",
+      "pattern": "^clm_[0-9a-f]{32}$"
+    },
+    "ClaimStatus": {
+      "description": "Computed status of a claim.",
+      "oneOf": [
+        {
+          "description": "Probe passed on the receiver's current tree.",
+          "type": "string",
+          "const": "verified"
+        },
+        {
+          "description": "Witnessed pass and the scope is byte-identical now.",
+          "type": "string",
+          "const": "holds"
+        },
+        {
+          "description": "Scope changed since the witnessed pass and no rerun happened.",
+          "type": "string",
+          "const": "stale"
+        },
+        {
+          "description": "A probe failed now, or witnessed evidence contradicts the claim.",
+          "type": "string",
+          "const": "refuted"
+        },
+        {
+          "description": "No probe could be attached.",
+          "type": "string",
+          "const": "unverified"
+        },
+        {
+          "description": "Probe errored, timed out, or needs approval.",
+          "type": "string",
+          "const": "unknown"
+        }
+      ]
+    },
+    "Tier": {
+      "description": "Trust tier of a piece of evidence.",
+      "oneOf": [
+        {
+          "description": "Evaluated by the receiving Firsthand on the receiver's tree.",
+          "type": "string",
+          "const": "replayed"
+        },
+        {
+          "description": "Observed by a Firsthand entry point during the session.",
+          "type": "string",
+          "const": "witnessed"
+        },
+        {
+          "description": "Asserted with no passing probe. Shown as HEARSAY.",
+          "type": "string",
+          "const": "reported"
+        }
+      ]
+    },
+    "Cause": {
+      "description": "Why a claim is affected by drift.",
+      "oneOf": [
+        {
+          "description": "A scoped file changed.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "file_changed"
+            },
+            "path": {
+              "description": "Path.",
+              "type": "string"
+            },
+            "before": {
+              "description": "Blob at anchor.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/GitOid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "after": {
+              "description": "Blob now.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/GitOid"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path"
+          ]
+        },
+        {
+          "description": "A scoped symbol changed.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "symbol_changed"
+            },
+            "path": {
+              "description": "File.",
+              "type": "string"
+            },
+            "name": {
+              "description": "Name.",
+              "type": "string"
+            },
+            "change": {
+              "description": "Change kind.",
+              "$ref": "#/$defs/SymbolChangeKind"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path",
+            "name",
+            "change"
+          ]
+        },
+        {
+          "description": "The repo tree changed (repo-scoped claims).",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "tree_changed"
+            },
+            "before": {
+              "description": "Tree at anchor.",
+              "$ref": "#/$defs/GitOid"
+            },
+            "after": {
+              "description": "Tree now.",
+              "$ref": "#/$defs/GitOid"
+            },
+            "sample_paths": {
+              "description": "Up to 20 changed paths, for the explanation.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "before",
+            "after",
+            "sample_paths"
+          ]
+        },
+        {
+          "description": "The branch differs from the anchor.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "branch_changed"
+            },
+            "before": {
+              "description": "Branch at anchor.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "after": {
+              "description": "Branch now.",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "description": "The anchor commit is missing locally.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "anchor_missing"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "GitOid": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "SymbolChangeKind": {
+      "description": "Kind of symbol change.",
+      "oneOf": [
+        {
+          "description": "New symbol.",
+          "type": "string",
+          "const": "added"
+        },
+        {
+          "description": "Symbol removed.",
+          "type": "string",
+          "const": "removed"
+        },
+        {
+          "description": "Body changed.",
+          "type": "string",
+          "const": "body_changed"
+        },
+        {
+          "description": "Signature changed.",
+          "type": "string",
+          "const": "sig_changed"
+        },
+        {
+          "description": "Moved to another file with identical hashes.",
+          "type": "string",
+          "const": "moved"
+        }
+      ]
+    },
+    "LedgerRef": {
+      "description": "Reference to one ledger entry.",
+      "type": "object",
+      "properties": {
+        "leg": {
+          "description": "Leg id.",
+          "$ref": "#/$defs/Id_leg"
+        },
+        "seq": {
+          "description": "Sequence number within the leg.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "hash": {
+          "description": "Hash of the entry.",
+          "$ref": "#/$defs/B3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "leg",
+        "seq",
+        "hash"
+      ]
+    },
+    "Id_leg": {
+      "type": "string",
+      "pattern": "^leg_[0-9a-f]{32}$"
+    },
+    "B3": {
+      "type": "string",
+      "pattern": "^b3:[0-9a-f]{64}$"
+    },
+    "ProbeResult": {
+      "description": "Result of evaluating a probe.",
+      "type": "object",
+      "properties": {
+        "probe_hash": {
+          "description": "Hash of the canonical probe.",
+          "$ref": "#/$defs/B3"
+        },
+        "outcome": {
+          "description": "Outcome.",
+          "$ref": "#/$defs/Outcome"
+        },
+        "by": {
+          "description": "Who evaluated it.",
+          "$ref": "#/$defs/ResultBy"
+        },
+        "tree": {
+          "description": "Tree it was evaluated against.",
+          "$ref": "#/$defs/GitOid"
+        },
+        "evaluated_at": {
+          "description": "When.",
+          "$ref": "#/$defs/Ts"
+        },
+        "duration_ms": {
+          "description": "Duration in milliseconds.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "evidence": {
+          "description": "Evidence blob (command output).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BlobRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "detail": {
+          "description": "Human-readable detail.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "probe_hash",
+        "outcome",
+        "by",
+        "tree",
+        "evaluated_at",
+        "duration_ms",
+        "detail"
+      ]
+    },
+    "Outcome": {
+      "description": "Probe outcome.",
+      "oneOf": [
+        {
+          "description": "Passed.",
+          "type": "string",
+          "const": "pass"
+        },
+        {
+          "description": "Failed.",
+          "type": "string",
+          "const": "fail"
+        },
+        {
+          "description": "Could not run (spawn failure, parse error).",
+          "type": "string",
+          "const": "error"
+        },
+        {
+          "description": "Timed out.",
+          "type": "string",
+          "const": "timeout"
+        },
+        {
+          "description": "Needs approval before it can run.",
+          "type": "string",
+          "const": "needs_approval"
+        },
+        {
+          "description": "Not run (policy or options).",
+          "type": "string",
+          "const": "skipped"
+        }
+      ]
+    },
+    "ResultBy": {
+      "description": "Who produced a probe result.",
+      "oneOf": [
+        {
+          "description": "Witnessed during the session.",
+          "type": "string",
+          "const": "witness"
+        },
+        {
+          "description": "Evaluated while sealing.",
+          "type": "string",
+          "const": "seal"
+        },
+        {
+          "description": "Evaluated by the receiver.",
+          "type": "string",
+          "const": "replay"
+        }
+      ]
+    },
+    "Ts": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "BlobRef": {
+      "description": "Reference to a stored output blob.",
+      "type": "object",
+      "properties": {
+        "hash": {
+          "description": "Hash of the stored (redacted, possibly truncated) bytes.",
+          "$ref": "#/$defs/B3"
+        },
+        "bytes": {
+          "description": "Original size.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "stored_bytes": {
+          "description": "Stored size.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "truncated": {
+          "description": "Whether the middle was elided.",
+          "type": "boolean"
+        },
+        "redacted": {
+          "description": "Whether redaction replaced anything.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "hash",
+        "bytes",
+        "stored_bytes",
+        "truncated",
+        "redacted"
+      ]
+    }
+  }
+}

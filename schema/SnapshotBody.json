@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SnapshotBody",
+  "description": "Body of a `snapshot` entry.",
+  "type": "object",
+  "properties": {
+    "snapshot": {
+      "description": "The snapshot.",
+      "$ref": "#/$defs/SnapshotRef"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "snapshot"
+  ],
+  "$defs": {
+    "SnapshotRef": {
+      "description": "A snapshot commit kept alive by a private ref.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Snapshot id.",
+          "$ref": "#/$defs/Id_snp"
+        },
+        "commit": {
+          "description": "Snapshot commit.",
+          "$ref": "#/$defs/GitOid"
+        },
+        "tree": {
+          "description": "Tree of the snapshot commit.",
+          "$ref": "#/$defs/GitOid"
+        },
+        "base": {
+          "description": "Parent commit (HEAD at snapshot time), if any.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GitOid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ref_name": {
+          "description": "Ref that keeps the commit alive, e.g. `refs/firsthand/snapshots/snp_...`.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Why the snapshot was taken.",
+          "$ref": "#/$defs/SnapshotKind"
+        },
+        "created_at": {
+          "description": "Creation time.",
+          "$ref": "#/$defs/Ts"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "commit",
+        "tree",
+        "ref_name",
+        "kind",
+        "created_at"
+      ]
+    },
+    "Id_snp": {
+      "type": "string",
+      "pattern": "^snp_[0-9a-f]{32}$"
+    },
+    "GitOid": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "SnapshotKind": {
+      "description": "Why a snapshot was taken.",
+      "oneOf": [
+        {
+          "description": "`firsthand snapshot`.",
+          "type": "string",
+          "const": "manual"
+        },
+        {
+          "description": "Rotating automatic snapshot (Stop hook).",
+          "type": "string",
+          "const": "auto"
+        },
+        {
+          "description": "Taken while sealing a packet.",
+          "type": "string",
+          "const": "handoff"
+        },
+        {
+          "description": "Taken before a context compaction.",
+          "type": "string",
+          "const": "pre_compact"
+        },
+        {
+          "description": "Taken before `restore --apply`.",
+          "type": "string",
+          "const": "pre_restore"
+        }
+      ]
+    },
+    "Ts": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    }
+  }
+}

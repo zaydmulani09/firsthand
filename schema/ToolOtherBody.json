@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ToolOtherBody",
+  "description": "Body of a `tool_other` entry.",
+  "type": "object",
+  "properties": {
+    "tool_name": {
+      "description": "Tool name.",
+      "type": "string"
+    },
+    "summary": {
+      "description": "Truncated, redacted summary.",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "tool_name",
+    "summary"
+  ]
+}

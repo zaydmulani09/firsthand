@@ -1,0 +1,304 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HookEvent",
+  "description": "Normalized harness hook event, produced by an adapter's `parse_hook_event`\nand consumed by the ledger's hook fast path.",
+  "type": "object",
+  "properties": {
+    "agent": {
+      "description": "Agent that emitted the event.",
+      "$ref": "#/$defs/AgentId"
+    },
+    "kind": {
+      "description": "Normalized event kind.",
+      "$ref": "#/$defs/HookEventKind"
+    },
+    "raw_event_name": {
+      "description": "The harness's own event name, as received.",
+      "type": "string"
+    },
+    "session_id": {
+      "description": "Agent session id.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "tool_use_id": {
+      "description": "Tool use id for pairing Pre and Post events.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "cwd": {
+      "description": "Working directory reported by the harness. Used for repo discovery only; never stored.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "transcript_path": {
+      "description": "Transcript path reported by the harness. Used for ingestion only; never stored.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source": {
+      "description": "SessionStart source (`startup`, `resume`, `clear`, `compact`).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "tool": {
+      "description": "Tool call details for tool events.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ToolCall"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "agent_version": {
+      "description": "Agent version, if reported.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "model": {
+      "description": "Model, if reported.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "agent",
+    "kind",
+    "raw_event_name"
+  ],
+  "$defs": {
+    "AgentId": {
+      "description": "Supported agents.",
+      "oneOf": [
+        {
+          "description": "Claude Code.",
+          "type": "string",
+          "const": "claude-code"
+        },
+        {
+          "description": "OpenAI Codex CLI.",
+          "type": "string",
+          "const": "codex"
+        },
+        {
+          "description": "Gemini CLI.",
+          "type": "string",
+          "const": "gemini-cli"
+        },
+        {
+          "description": "OpenCode.",
+          "type": "string",
+          "const": "opencode"
+        },
+        {
+          "description": "Any other agent, through `firsthand run`, MCP, or the CLI.",
+          "type": "string",
+          "const": "generic"
+        }
+      ]
+    },
+    "HookEventKind": {
+      "description": "Normalized hook event kinds.",
+      "oneOf": [
+        {
+          "description": "Session started or resumed.",
+          "type": "string",
+          "const": "session_start"
+        },
+        {
+          "description": "Before a tool runs.",
+          "type": "string",
+          "const": "pre_tool_use"
+        },
+        {
+          "description": "After a tool ran.",
+          "type": "string",
+          "const": "post_tool_use"
+        },
+        {
+          "description": "The agent stopped (end of a turn).",
+          "type": "string",
+          "const": "stop"
+        },
+        {
+          "description": "A subagent stopped.",
+          "type": "string",
+          "const": "subagent_stop"
+        },
+        {
+          "description": "Context is about to be compacted.",
+          "type": "string",
+          "const": "pre_compact"
+        },
+        {
+          "description": "Session ended.",
+          "type": "string",
+          "const": "session_end"
+        },
+        {
+          "description": "The user submitted a prompt.",
+          "type": "string",
+          "const": "user_prompt_submit"
+        },
+        {
+          "description": "Anything else.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "ToolCall": {
+      "description": "A tool call inside a hook event.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Tool name as the harness reports it (`Bash`, `Write`, `apply_patch`).",
+          "type": "string"
+        },
+        "class": {
+          "description": "Classification.",
+          "$ref": "#/$defs/ToolClass"
+        },
+        "command": {
+          "description": "Shell command text, for shell tools.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "argv": {
+          "description": "argv, when the harness provides one.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "file_paths": {
+          "description": "Edited file paths (as reported; normalized by the ledger), for edit tools.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "file_op": {
+          "description": "File operation, for edit tools.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FileOp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "exit_code": {
+          "description": "Exit code, for completed shell tools.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "stdout": {
+          "description": "stdout, for completed shell tools (unredacted here; the ledger redacts).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stderr": {
+          "description": "stderr, for completed shell tools.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "is_error": {
+          "description": "Whether the harness marked the result as an error.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "summary": {
+          "description": "Short summary for other tools.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "class",
+        "file_paths"
+      ]
+    },
+    "ToolClass": {
+      "description": "Tool classification.",
+      "oneOf": [
+        {
+          "description": "Runs shell commands.",
+          "type": "string",
+          "const": "shell"
+        },
+        {
+          "description": "Writes or edits files.",
+          "type": "string",
+          "const": "file_edit"
+        },
+        {
+          "description": "Anything else.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "FileOp": {
+      "description": "File operation.",
+      "oneOf": [
+        {
+          "description": "Whole-file write.",
+          "type": "string",
+          "const": "write"
+        },
+        {
+          "description": "In-place edit.",
+          "type": "string",
+          "const": "edit"
+        },
+        {
+          "description": "Deletion.",
+          "type": "string",
+          "const": "delete"
+        },
+        {
+          "description": "Rename.",
+          "type": "string",
+          "const": "rename"
+        }
+      ]
+    }
+  }
+}

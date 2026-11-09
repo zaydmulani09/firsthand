@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IngestedSession",
+  "description": "A session log read by an adapter. Everything in it is hearsay.",
+  "type": "object",
+  "properties": {
+    "agent": {
+      "description": "Source agent.",
+      "$ref": "#/$defs/AgentId"
+    },
+    "session_id": {
+      "description": "Session id.",
+      "type": "string"
+    },
+    "cwd": {
+      "description": "Working directory recorded in the log (absolute; never written to packets).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "git_branch": {
+      "description": "Branch recorded in the log.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "started": {
+      "description": "Start time.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ts"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ended": {
+      "description": "End time.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ts"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "messages": {
+      "description": "Messages in order. Hidden reasoning is never included.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/IngestedMessage"
+      }
+    },
+    "tool_events": {
+      "description": "Tool events in order.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/IngestedToolEvent"
+      }
+    },
+    "final_assistant_text": {
+      "description": "Text of the final assistant turn.",
+      "type": "string"
+    },
+    "source_hash": {
+      "description": "BLAKE3 of the source bytes.",
+      "$ref": "#/$defs/B3"
+    },
+    "skipped_records": {
+      "description": "Lines or records skipped as malformed.",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "agent",
+    "session_id",
+    "messages",
+    "tool_events",
+    "final_assistant_text",
+    "source_hash",
+    "skipped_records"
+  ],
+  "$defs": {
+    "AgentId": {
+      "description": "Supported agents.",
+      "oneOf": [
+        {
+          "description": "Claude Code.",
+          "type": "string",
+          "const": "claude-code"
+        },
+        {
+          "description": "OpenAI Codex CLI.",
+          "type": "string",
+          "const": "codex"
+        },
+        {
+          "description": "Gemini CLI.",
+          "type": "string",
+          "const": "gemini-cli"
+        },
+        {
+          "description": "OpenCode.",
+          "type": "string",
+          "const": "opencode"
+        },
+        {
+          "description": "Any other agent, through `firsthand run`, MCP, or the CLI.",
+          "type": "string",
+          "const": "generic"
+        }
+      ]
+    },
+    "Ts": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "IngestedMessage": {
+      "description": "One message of an ingested session.",
+      "type": "object",
+      "properties": {
+        "role": {
+          "description": "Role.",
+          "$ref": "#/$defs/Role"
+        },
+        "text": {
+          "description": "Text content.",
+          "type": "string"
+        },
+        "ts": {
+          "description": "Timestamp.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ts"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_summary": {
+          "description": "Whether the harness marked it as a summary (compaction).",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "text",
+        "is_summary"
+      ]
+    },
+    "Role": {
+      "description": "Message role.",
+      "oneOf": [
+        {
+          "description": "The user.",
+          "type": "string",
+          "const": "user"
+        },
+        {
+          "description": "The assistant.",
+          "type": "string",
+          "const": "assistant"
+        },
+        {
+          "description": "System or harness text.",
+          "type": "string",
+          "const": "system"
+        },
+        {
+          "description": "Tool output.",
+          "type": "string",
+          "const": "tool"
+        }
+      ]
+    },
+    "IngestedToolEvent": {
+      "description": "One tool event of an ingested session.",
+      "type": "object",
+      "properties": {
+        "tool": {
+          "description": "Tool name.",
+          "type": "string"
+        },
+        "summary": {
+          "description": "Short summary (command text, file path).",
+          "type": "string"
+        },
+        "output": {
+          "description": "Output excerpt.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ts": {
+          "description": "Timestamp.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ts"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_error": {
+          "description": "Whether it errored.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "tool",
+        "summary",
+        "is_error"
+      ]
+    },
+    "B3": {
+      "type": "string",
+      "pattern": "^b3:[0-9a-f]{64}$"
+    }
+  }
+}

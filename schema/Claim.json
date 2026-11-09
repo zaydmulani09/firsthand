@@ -1,0 +1,1107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Claim",
+  "description": "A statement about the repo or the work, with scope, probe and results.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "description": "Claim id.",
+      "$ref": "#/$defs/Id_clm"
+    },
+    "text": {
+      "description": "Claim text (agent-authored text is untrusted).",
+      "type": "string"
+    },
+    "category": {
+      "description": "Category.",
+      "$ref": "#/$defs/ClaimCategory"
+    },
+    "origin": {
+      "description": "Who asserted it.",
+      "$ref": "#/$defs/ClaimOrigin"
+    },
+    "scope": {
+      "description": "What it depends on.",
+      "$ref": "#/$defs/Scope"
+    },
+    "probe": {
+      "description": "How to check it.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Probe"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "results": {
+      "description": "Probe results so far.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ProbeResult"
+      }
+    },
+    "created_at": {
+      "description": "Creation time.",
+      "$ref": "#/$defs/Ts"
+    },
+    "leg": {
+      "description": "Leg that created it.",
+      "$ref": "#/$defs/Id_leg"
+    },
+    "ledger_ref": {
+      "description": "Ledger entry that created it.",
+      "$ref": "#/$defs/LedgerRef"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "text",
+    "category",
+    "origin",
+    "scope",
+    "results",
+    "created_at",
+    "leg",
+    "ledger_ref"
+  ],
+  "$defs": {
+    "Id_clm": {
+      "type": "string",
+      "pattern": "^clm_[0-9a-f]{32}$"
+    },
+    "ClaimCategory": {
+      "description": "Claim category.",
+      "oneOf": [
+        {
+          "description": "A witnessed verification command succeeded.",
+          "type": "string",
+          "const": "command_succeeded"
+        },
+        {
+          "description": "A witnessed verification command failed.",
+          "type": "string",
+          "const": "command_failed"
+        },
+        {
+          "description": "Tests pass.",
+          "type": "string",
+          "const": "tests_pass"
+        },
+        {
+          "description": "Build succeeds.",
+          "type": "string",
+          "const": "build_ok"
+        },
+        {
+          "description": "Lint is clean.",
+          "type": "string",
+          "const": "lint_ok"
+        },
+        {
+          "description": "A file was created.",
+          "type": "string",
+          "const": "file_created"
+        },
+        {
+          "description": "A file was modified.",
+          "type": "string",
+          "const": "file_modified"
+        },
+        {
+          "description": "A file was deleted.",
+          "type": "string",
+          "const": "file_deleted"
+        },
+        {
+          "description": "A symbol was added.",
+          "type": "string",
+          "const": "symbol_added"
+        },
+        {
+          "description": "A refactor is complete.",
+          "type": "string",
+          "const": "refactor_done"
+        },
+        {
+          "description": "A bug was fixed.",
+          "type": "string",
+          "const": "bug_fixed"
+        },
+        {
+          "description": "A task is done.",
+          "type": "string",
+          "const": "task_done"
+        },
+        {
+          "description": "A statement about a branch.",
+          "type": "string",
+          "const": "branch"
+        },
+        {
+          "description": "Anything else.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "ClaimOrigin": {
+      "description": "Who asserted a claim and how confident the source is.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "Source kind.",
+          "$ref": "#/$defs/OriginSource"
+        },
+        "agent": {
+          "description": "Agent, if any.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence_permille": {
+          "description": "Confidence in permille (0 to 1000). Integer, never a float.",
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0,
+          "maximum": 65535
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "confidence_permille"
+      ]
+    },
+    "OriginSource": {
+      "description": "Origin of a claim.",
+      "oneOf": [
+        {
+          "description": "Derived from witnessed events.",
+          "type": "string",
+          "const": "witnessed"
+        },
+        {
+          "description": "Declared by the agent.",
+          "type": "string",
+          "const": "agent_declared"
+        },
+        {
+          "description": "Declared by a human.",
+          "type": "string",
+          "const": "human"
+        },
+        {
+          "description": "Extracted from transcript narration.",
+          "type": "string",
+          "const": "transcript_extracted"
+        },
+        {
+          "description": "Imported from a markdown handoff.",
+          "type": "string",
+          "const": "imported"
+        }
+      ]
+    },
+    "AgentId": {
+      "description": "Supported agents.",
+      "oneOf": [
+        {
+          "description": "Claude Code.",
+          "type": "string",
+          "const": "claude-code"
+        },
+        {
+          "description": "OpenAI Codex CLI.",
+          "type": "string",
+          "const": "codex"
+        },
+        {
+          "description": "Gemini CLI.",
+          "type": "string",
+          "const": "gemini-cli"
+        },
+        {
+          "description": "OpenCode.",
+          "type": "string",
+          "const": "opencode"
+        },
+        {
+          "description": "Any other agent, through `firsthand run`, MCP, or the CLI.",
+          "type": "string",
+          "const": "generic"
+        }
+      ]
+    },
+    "Scope": {
+      "description": "What a claim depends on.",
+      "oneOf": [
+        {
+          "description": "The whole tree.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "repo"
+            },
+            "tree": {
+              "description": "Tree oid at anchor time.",
+              "$ref": "#/$defs/GitOid"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "tree"
+          ]
+        },
+        {
+          "description": "Specific files and symbols.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "items"
+            },
+            "files": {
+              "description": "Files with blob oids.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ScopedFile"
+              }
+            },
+            "symbols": {
+              "description": "Symbols with body and signature hashes.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ScopedSymbol"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "files",
+            "symbols"
+          ]
+        }
+      ]
+    },
+    "GitOid": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "ScopedFile": {
+      "description": "A file in a claim scope.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "Repo-relative path.",
+          "type": "string"
+        },
+        "blob": {
+          "description": "Blob at anchor time; `None` means absent at anchor.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GitOid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path"
+      ]
+    },
+    "ScopedSymbol": {
+      "description": "A symbol in a claim scope.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "File containing the symbol at anchor time.",
+          "type": "string"
+        },
+        "name": {
+          "description": "Symbol name.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Symbol kind.",
+          "$ref": "#/$defs/SymbolKind"
+        },
+        "body_hash": {
+          "description": "Formatting-insensitive body hash.",
+          "$ref": "#/$defs/B3"
+        },
+        "sig_hash": {
+          "description": "Signature hash.",
+          "$ref": "#/$defs/B3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "name",
+        "kind",
+        "body_hash",
+        "sig_hash"
+      ]
+    },
+    "SymbolKind": {
+      "description": "Kind of source symbol.",
+      "oneOf": [
+        {
+          "description": "Free function.",
+          "type": "string",
+          "const": "fn"
+        },
+        {
+          "description": "Method.",
+          "type": "string",
+          "const": "method"
+        },
+        {
+          "description": "Class.",
+          "type": "string",
+          "const": "class"
+        },
+        {
+          "description": "Struct.",
+          "type": "string",
+          "const": "struct"
+        },
+        {
+          "description": "Enum.",
+          "type": "string",
+          "const": "enum"
+        },
+        {
+          "description": "Trait.",
+          "type": "string",
+          "const": "trait"
+        },
+        {
+          "description": "Interface.",
+          "type": "string",
+          "const": "interface"
+        },
+        {
+          "description": "Type alias.",
+          "type": "string",
+          "const": "type"
+        },
+        {
+          "description": "Constant.",
+          "type": "string",
+          "const": "const"
+        },
+        {
+          "description": "Module or namespace.",
+          "type": "string",
+          "const": "module"
+        }
+      ]
+    },
+    "B3": {
+      "type": "string",
+      "pattern": "^b3:[0-9a-f]{64}$"
+    },
+    "Probe": {
+      "description": "A checkable procedure attached to a claim. Everything except `Command` is static.",
+      "oneOf": [
+        {
+          "description": "File exists in the tree.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "file_exists"
+            },
+            "path": {
+              "description": "Path.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path"
+          ]
+        },
+        {
+          "description": "File is absent from the tree.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "file_absent"
+            },
+            "path": {
+              "description": "Path.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path"
+          ]
+        },
+        {
+          "description": "File has exactly this blob.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "file_hash"
+            },
+            "path": {
+              "description": "Path.",
+              "type": "string"
+            },
+            "blob": {
+              "description": "Expected blob.",
+              "$ref": "#/$defs/GitOid"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path",
+            "blob"
+          ]
+        },
+        {
+          "description": "File content matches a regex at least `min` times.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "file_contains"
+            },
+            "path": {
+              "description": "Path.",
+              "type": "string"
+            },
+            "pattern": {
+              "description": "Rust regex syntax.",
+              "type": "string"
+            },
+            "min": {
+              "description": "Minimum matches.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path",
+            "pattern",
+            "min"
+          ]
+        },
+        {
+          "description": "Number of files matching a glob compares to `n`.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "glob_count"
+            },
+            "glob": {
+              "description": "Glob.",
+              "type": "string"
+            },
+            "op": {
+              "description": "Comparison.",
+              "$ref": "#/$defs/CmpOp"
+            },
+            "n": {
+              "description": "Count.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "glob",
+            "op",
+            "n"
+          ]
+        },
+        {
+          "description": "A commit exists.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "git_commit_exists"
+            },
+            "oid": {
+              "description": "Commit.",
+              "$ref": "#/$defs/GitOid"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "oid"
+          ]
+        },
+        {
+          "description": "A branch points at a commit.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "git_branch_at"
+            },
+            "branch": {
+              "description": "Branch name.",
+              "type": "string"
+            },
+            "oid": {
+              "description": "Commit.",
+              "$ref": "#/$defs/GitOid"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "branch",
+            "oid"
+          ]
+        },
+        {
+          "description": "A path has no uncommitted changes.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "git_path_clean"
+            },
+            "path": {
+              "description": "Path.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path"
+          ]
+        },
+        {
+          "description": "A symbol is defined.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "symbol_defined"
+            },
+            "path": {
+              "description": "Restrict to a file.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "name": {
+              "description": "Name.",
+              "type": "string"
+            },
+            "kind": {
+              "description": "Restrict to a kind.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SymbolKind"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "name"
+          ]
+        },
+        {
+          "description": "No symbol with this name exists.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "symbol_absent"
+            },
+            "name": {
+              "description": "Name.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "name"
+          ]
+        },
+        {
+          "description": "A symbol body has exactly this hash.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "symbol_hash"
+            },
+            "path": {
+              "description": "File.",
+              "type": "string"
+            },
+            "name": {
+              "description": "Name.",
+              "type": "string"
+            },
+            "body_hash": {
+              "description": "Expected body hash.",
+              "$ref": "#/$defs/B3"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path",
+            "name",
+            "body_hash"
+          ]
+        },
+        {
+          "description": "Cross-check against the latest witnessed verification command. Executes nothing.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "ledger_verification"
+            },
+            "kind": {
+              "description": "Kind of verification.",
+              "$ref": "#/$defs/VerificationKind"
+            },
+            "matcher": {
+              "description": "Optional argv prefix filter.",
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/CommandMatcher"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "require": {
+              "description": "What counts as passing.",
+              "$ref": "#/$defs/LedgerRequire"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "kind",
+            "require"
+          ]
+        },
+        {
+          "description": "Execute a program. Policy gated.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "command"
+            },
+            "argv": {
+              "description": "argv.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "cwd_rel": {
+              "description": "Working directory relative to the repo root.",
+              "type": "string"
+            },
+            "shell": {
+              "description": "Run through a shell (requires `allow_shell` and explicit approval).",
+              "type": "boolean"
+            },
+            "timeout_s": {
+              "description": "Timeout in seconds.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            },
+            "expect": {
+              "description": "Expected outcome.",
+              "$ref": "#/$defs/Expect"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "argv",
+            "cwd_rel",
+            "shell",
+            "timeout_s",
+            "expect"
+          ]
+        },
+        {
+          "description": "All sub-probes must pass.",
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "all"
+            },
+            "probes": {
+              "description": "Sub-probes.",
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Probe"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "probes"
+          ]
+        }
+      ]
+    },
+    "CmpOp": {
+      "description": "Comparison operator.",
+      "oneOf": [
+        {
+          "description": "Equal.",
+          "type": "string",
+          "const": "eq"
+        },
+        {
+          "description": "Not equal.",
+          "type": "string",
+          "const": "ne"
+        },
+        {
+          "description": "Less than.",
+          "type": "string",
+          "const": "lt"
+        },
+        {
+          "description": "Less or equal.",
+          "type": "string",
+          "const": "le"
+        },
+        {
+          "description": "Greater than.",
+          "type": "string",
+          "const": "gt"
+        },
+        {
+          "description": "Greater or equal.",
+          "type": "string",
+          "const": "ge"
+        }
+      ]
+    },
+    "VerificationKind": {
+      "description": "Kind of verification command.",
+      "oneOf": [
+        {
+          "description": "Test runner.",
+          "type": "string",
+          "const": "test"
+        },
+        {
+          "description": "Build.",
+          "type": "string",
+          "const": "build"
+        },
+        {
+          "description": "Linter.",
+          "type": "string",
+          "const": "lint"
+        },
+        {
+          "description": "Type checker.",
+          "type": "string",
+          "const": "typecheck"
+        },
+        {
+          "description": "Recognized but uncategorized.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "CommandMatcher": {
+      "description": "Filters witnessed commands by argv prefix.",
+      "type": "object",
+      "properties": {
+        "argv_prefix": {
+          "description": "argv prefix.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "argv_prefix"
+      ]
+    },
+    "LedgerRequire": {
+      "description": "Requirement for a ledger verification probe.",
+      "oneOf": [
+        {
+          "description": "Exit code 0.",
+          "type": "string",
+          "const": "exit_zero"
+        },
+        {
+          "description": "Parsed tests: zero failed and more than zero passed.",
+          "type": "string",
+          "const": "tests_all_pass"
+        }
+      ]
+    },
+    "Expect": {
+      "description": "Expected outcome of a command probe.",
+      "type": "object",
+      "properties": {
+        "exit": {
+          "description": "Expected exit code.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "stdout_regex": {
+          "description": "stdout must match.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stderr_absent_regex": {
+          "description": "stderr must not match.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProbeResult": {
+      "description": "Result of evaluating a probe.",
+      "type": "object",
+      "properties": {
+        "probe_hash": {
+          "description": "Hash of the canonical probe.",
+          "$ref": "#/$defs/B3"
+        },
+        "outcome": {
+          "description": "Outcome.",
+          "$ref": "#/$defs/Outcome"
+        },
+        "by": {
+          "description": "Who evaluated it.",
+          "$ref": "#/$defs/ResultBy"
+        },
+        "tree": {
+          "description": "Tree it was evaluated against.",
+          "$ref": "#/$defs/GitOid"
+        },
+        "evaluated_at": {
+          "description": "When.",
+          "$ref": "#/$defs/Ts"
+        },
+        "duration_ms": {
+          "description": "Duration in milliseconds.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "evidence": {
+          "description": "Evidence blob (command output).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BlobRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "detail": {
+          "description": "Human-readable detail.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "probe_hash",
+        "outcome",
+        "by",
+        "tree",
+        "evaluated_at",
+        "duration_ms",
+        "detail"
+      ]
+    },
+    "Outcome": {
+      "description": "Probe outcome.",
+      "oneOf": [
+        {
+          "description": "Passed.",
+          "type": "string",
+          "const": "pass"
+        },
+        {
+          "description": "Failed.",
+          "type": "string",
+          "const": "fail"
+        },
+        {
+          "description": "Could not run (spawn failure, parse error).",
+          "type": "string",
+          "const": "error"
+        },
+        {
+          "description": "Timed out.",
+          "type": "string",
+          "const": "timeout"
+        },
+        {
+          "description": "Needs approval before it can run.",
+          "type": "string",
+          "const": "needs_approval"
+        },
+        {
+          "description": "Not run (policy or options).",
+          "type": "string",
+          "const": "skipped"
+        }
+      ]
+    },
+    "ResultBy": {
+      "description": "Who produced a probe result.",
+      "oneOf": [
+        {
+          "description": "Witnessed during the session.",
+          "type": "string",
+          "const": "witness"
+        },
+        {
+          "description": "Evaluated while sealing.",
+          "type": "string",
+          "const": "seal"
+        },
+        {
+          "description": "Evaluated by the receiver.",
+          "type": "string",
+          "const": "replay"
+        }
+      ]
+    },
+    "Ts": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "BlobRef": {
+      "description": "Reference to a stored output blob.",
+      "type": "object",
+      "properties": {
+        "hash": {
+          "description": "Hash of the stored (redacted, possibly truncated) bytes.",
+          "$ref": "#/$defs/B3"
+        },
+        "bytes": {
+          "description": "Original size.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "stored_bytes": {
+          "description": "Stored size.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "truncated": {
+          "description": "Whether the middle was elided.",
+          "type": "boolean"
+        },
+        "redacted": {
+          "description": "Whether redaction replaced anything.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "hash",
+        "bytes",
+        "stored_bytes",
+        "truncated",
+        "redacted"
+      ]
+    },
+    "Id_leg": {
+      "type": "string",
+      "pattern": "^leg_[0-9a-f]{32}$"
+    },
+    "LedgerRef": {
+      "description": "Reference to one ledger entry.",
+      "type": "object",
+      "properties": {
+        "leg": {
+          "description": "Leg id.",
+          "$ref": "#/$defs/Id_leg"
+        },
+        "seq": {
+          "description": "Sequence number within the leg.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "hash": {
+          "description": "Hash of the entry.",
+          "$ref": "#/$defs/B3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "leg",
+        "seq",
+        "hash"
+      ]
+    }
+  }
+}

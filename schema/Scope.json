@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Scope",
+  "description": "What a claim depends on.",
+  "oneOf": [
+    {
+      "description": "The whole tree.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "repo"
+        },
+        "tree": {
+          "description": "Tree oid at anchor time.",
+          "$ref": "#/$defs/GitOid"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "tree"
+      ]
+    },
+    {
+      "description": "Specific files and symbols.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "items"
+        },
+        "files": {
+          "description": "Files with blob oids.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScopedFile"
+          }
+        },
+        "symbols": {
+          "description": "Symbols with body and signature hashes.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScopedSymbol"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "files",
+        "symbols"
+      ]
+    }
+  ],
+  "$defs": {
+    "GitOid": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "ScopedFile": {
+      "description": "A file in a claim scope.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "Repo-relative path.",
+          "type": "string"
+        },
+        "blob": {
+          "description": "Blob at anchor time; `None` means absent at anchor.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GitOid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path"
+      ]
+    },
+    "ScopedSymbol": {
+      "description": "A symbol in a claim scope.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "File containing the symbol at anchor time.",
+          "type": "string"
+        },
+        "name": {
+          "description": "Symbol name.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Symbol kind.",
+          "$ref": "#/$defs/SymbolKind"
+        },
+        "body_hash": {
+          "description": "Formatting-insensitive body hash.",
+          "$ref": "#/$defs/B3"
+        },
+        "sig_hash": {
+          "description": "Signature hash.",
+          "$ref": "#/$defs/B3"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "name",
+        "kind",
+        "body_hash",
+        "sig_hash"
+      ]
+    },
+    "SymbolKind": {
+      "description": "Kind of source symbol.",
+      "oneOf": [
+        {
+          "description": "Free function.",
+          "type": "string",
+          "const": "fn"
+        },
+        {
+          "description": "Method.",
+          "type": "string",
+          "const": "method"
+        },
+        {
+          "description": "Class.",
+          "type": "string",
+          "const": "class"
+        },
+        {
+          "description": "Struct.",
+          "type": "string",
+          "const": "struct"
+        },
+        {
+          "description": "Enum.",
+          "type": "string",
+          "const": "enum"
+        },
+        {
+          "description": "Trait.",
+          "type": "string",
+          "const": "trait"
+        },
+        {
+          "description": "Interface.",
+          "type": "string",
+          "const": "interface"
+        },
+        {
+          "description": "Type alias.",
+          "type": "string",
+          "const": "type"
+        },
+        {
+          "description": "Constant.",
+          "type": "string",
+          "const": "const"
+        },
+        {
+          "description": "Module or namespace.",
+          "type": "string",
+          "const": "module"
+        }
+      ]
+    },
+    "B3": {
+      "type": "string",
+      "pattern": "^b3:[0-9a-f]{64}$"
+    }
+  }
+}

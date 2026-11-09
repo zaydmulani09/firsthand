@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RepoAnchor",
+  "description": "The repo identity, HEAD, branch and snapshot a packet is true at.",
+  "type": "object",
+  "properties": {
+    "repo_id": {
+      "description": "BLAKE3 of the newline-joined sorted root commit oids. Stable across clones.",
+      "$ref": "#/$defs/B3"
+    },
+    "object_format": {
+      "description": "Object format of the repository.",
+      "$ref": "#/$defs/ObjectFormat"
+    },
+    "head": {
+      "description": "HEAD commit, `None` on an unborn branch.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GitOid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "branch": {
+      "description": "Branch name, `None` if detached.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "upstream": {
+      "description": "Upstream tracking ref, if any.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "snapshot": {
+      "description": "Snapshot of the full working state.",
+      "$ref": "#/$defs/SnapshotRef"
+    },
+    "worktree": {
+      "description": "Worktree information, without absolute paths.",
+      "$ref": "#/$defs/WorktreeInfo"
+    },
+    "dirty": {
+      "description": "Summary of uncommitted changes.",
+      "$ref": "#/$defs/DirtySummary"
+    },
+    "git_version": {
+      "description": "`git --version` output.",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "repo_id",
+    "object_format",
+    "snapshot",
+    "worktree",
+    "dirty",
+    "git_version"
+  ],
+  "$defs": {
+    "B3": {
+      "type": "string",
+      "pattern": "^b3:[0-9a-f]{64}$"
+    },
+    "ObjectFormat": {
+      "description": "Git object format.",
+      "oneOf": [
+        {
+          "description": "SHA-1, 40 hex digits.",
+          "type": "string",
+          "const": "sha1"
+        },
+        {
+          "description": "SHA-256, 64 hex digits.",
+          "type": "string",
+          "const": "sha256"
+        }
+      ]
+    },
+    "GitOid": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "SnapshotRef": {
+      "description": "A snapshot commit kept alive by a private ref.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Snapshot id.",
+          "$ref": "#/$defs/Id_snp"
+        },
+        "commit": {
+          "description": "Snapshot commit.",
+          "$ref": "#/$defs/GitOid"
+        },
+        "tree": {
+          "description": "Tree of the snapshot commit.",
+          "$ref": "#/$defs/GitOid"
+        },
+        "base": {
+          "description": "Parent commit (HEAD at snapshot time), if any.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GitOid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ref_name": {
+          "description": "Ref that keeps the commit alive, e.g. `refs/firsthand/snapshots/snp_...`.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Why the snapshot was taken.",
+          "$ref": "#/$defs/SnapshotKind"
+        },
+        "created_at": {
+          "description": "Creation time.",
+          "$ref": "#/$defs/Ts"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "commit",
+        "tree",
+        "ref_name",
+        "kind",
+        "created_at"
+      ]
+    },
+    "Id_snp": {
+      "type": "string",
+      "pattern": "^snp_[0-9a-f]{32}$"
+    },
+    "SnapshotKind": {
+      "description": "Why a snapshot was taken.",
+      "oneOf": [
+        {
+          "description": "`firsthand snapshot`.",
+          "type": "string",
+          "const": "manual"
+        },
+        {
+          "description": "Rotating automatic snapshot (Stop hook).",
+          "type": "string",
+          "const": "auto"
+        },
+        {
+          "description": "Taken while sealing a packet.",
+          "type": "string",
+          "const": "handoff"
+        },
+        {
+          "description": "Taken before a context compaction.",
+          "type": "string",
+          "const": "pre_compact"
+        },
+        {
+          "description": "Taken before `restore --apply`.",
+          "type": "string",
+          "const": "pre_restore"
+        }
+      ]
+    },
+    "Ts": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "WorktreeInfo": {
+      "description": "Linked worktree information.",
+      "type": "object",
+      "properties": {
+        "linked": {
+          "description": "Whether this is a linked worktree.",
+          "type": "boolean"
+        },
+        "name": {
+          "description": "Worktree name (directory name under `.git/worktrees`), if linked.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "linked"
+      ]
+    },
+    "DirtySummary": {
+      "description": "Counts of uncommitted changes and files deliberately left out.",
+      "type": "object",
+      "properties": {
+        "modified": {
+          "description": "Tracked files modified.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "added": {
+          "description": "Files added to the index or new.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "deleted": {
+          "description": "Tracked files deleted.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "untracked": {
+          "description": "Untracked, non-ignored files.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "omitted": {
+          "description": "Files that would have been captured but were excluded.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Omitted"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "modified",
+        "added",
+        "deleted",
+        "untracked",
+        "omitted"
+      ]
+    },
+    "Omitted": {
+      "description": "A file excluded from a snapshot, with the reason. Nothing is dropped silently.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "Repo-relative path with `/` separators.",
+          "type": "string"
+        },
+        "reason": {
+          "description": "Why it was excluded.",
+          "$ref": "#/$defs/OmitReason"
+        },
+        "bytes": {
+          "description": "Size in bytes, if known.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "hash": {
+          "description": "BLAKE3 of the content, if computed (never for secrets).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/B3"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "reason"
+      ]
+    },
+    "OmitReason": {
+      "description": "Reason a file was excluded from a snapshot.",
+      "oneOf": [
+        {
+          "description": "Path matched a secret glob.",
+          "type": "string",
+          "const": "secret_pattern"
+        },
+        {
+          "description": "Content matched a secret rule.",
+          "type": "string",
+          "const": "secret_content"
+        },
+        {
+          "description": "Larger than `snapshot.max_file_bytes`.",
+          "type": "string",
+          "const": "too_large"
+        },
+        {
+          "description": "Submodule content (recorded as a gitlink only).",
+          "type": "string",
+          "const": "submodule"
+        }
+      ]
+    }
+  }
+}

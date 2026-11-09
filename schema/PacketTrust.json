@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PacketTrust",
+  "description": "Trust classification of a packet's signer.",
+  "oneOf": [
+    {
+      "description": "Signed by the user's own key.",
+      "type": "string",
+      "const": "own"
+    },
+    {
+      "description": "Signed by a key in `trusted_keys.toml`.",
+      "type": "string",
+      "const": "trusted"
+    },
+    {
+      "description": "Signed by an unknown key.",
+      "type": "string",
+      "const": "unknown"
+    },
+    {
+      "description": "No signature.",
+      "type": "string",
+      "const": "unsigned"
+    }
+  ]
+}

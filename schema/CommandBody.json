@@ -1,0 +1,253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CommandBody",
+  "description": "Body of a `command` entry.",
+  "type": "object",
+  "properties": {
+    "argv": {
+      "description": "argv, when known.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "string"
+      }
+    },
+    "command_text": {
+      "description": "Command as text (redacted).",
+      "type": "string"
+    },
+    "cwd_rel": {
+      "description": "Working directory relative to the repo root (`.` for root).",
+      "type": "string"
+    },
+    "exit_code": {
+      "description": "Exit code, if it finished.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32"
+    },
+    "started_at": {
+      "description": "Start time.",
+      "$ref": "#/$defs/Ts"
+    },
+    "duration_ms": {
+      "description": "Duration in milliseconds.",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "stdout": {
+      "description": "Captured stdout.",
+      "$ref": "#/$defs/BlobRef"
+    },
+    "stderr": {
+      "description": "Captured stderr.",
+      "$ref": "#/$defs/BlobRef"
+    },
+    "tree_before": {
+      "description": "Tree before the command (verification commands only).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GitOid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tree_after": {
+      "description": "Tree after the command (verification commands only).",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GitOid"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "dirty_fp": {
+      "description": "Cheap fingerprint of the dirty state.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/B3"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "runner": {
+      "description": "Who ran it.",
+      "$ref": "#/$defs/CommandRunner"
+    },
+    "verification_kind": {
+      "description": "Verification kind, if the command matched a pattern.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/VerificationKind"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "test_summary": {
+      "description": "Parsed test counts.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TestSummary"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "command_text",
+    "cwd_rel",
+    "started_at",
+    "duration_ms",
+    "stdout",
+    "stderr",
+    "runner"
+  ],
+  "$defs": {
+    "Ts": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "BlobRef": {
+      "description": "Reference to a stored output blob.",
+      "type": "object",
+      "properties": {
+        "hash": {
+          "description": "Hash of the stored (redacted, possibly truncated) bytes.",
+          "$ref": "#/$defs/B3"
+        },
+        "bytes": {
+          "description": "Original size.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "stored_bytes": {
+          "description": "Stored size.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "truncated": {
+          "description": "Whether the middle was elided.",
+          "type": "boolean"
+        },
+        "redacted": {
+          "description": "Whether redaction replaced anything.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "hash",
+        "bytes",
+        "stored_bytes",
+        "truncated",
+        "redacted"
+      ]
+    },
+    "B3": {
+      "type": "string",
+      "pattern": "^b3:[0-9a-f]{64}$"
+    },
+    "GitOid": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+    },
+    "CommandRunner": {
+      "description": "Who executed a witnessed command.",
+      "oneOf": [
+        {
+          "description": "The agent's shell tool, observed by a hook.",
+          "type": "string",
+          "const": "bash-tool"
+        },
+        {
+          "description": "`firsthand run`.",
+          "type": "string",
+          "const": "fh-run"
+        }
+      ]
+    },
+    "VerificationKind": {
+      "description": "Kind of verification command.",
+      "oneOf": [
+        {
+          "description": "Test runner.",
+          "type": "string",
+          "const": "test"
+        },
+        {
+          "description": "Build.",
+          "type": "string",
+          "const": "build"
+        },
+        {
+          "description": "Linter.",
+          "type": "string",
+          "const": "lint"
+        },
+        {
+          "description": "Type checker.",
+          "type": "string",
+          "const": "typecheck"
+        },
+        {
+          "description": "Recognized but uncategorized.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "TestSummary": {
+      "description": "Parsed test counts.",
+      "type": "object",
+      "properties": {
+        "runner": {
+          "description": "Runner name (`cargo`, `pytest`, `vitest`, `jest`, `go`).",
+          "type": "string"
+        },
+        "passed": {
+          "description": "Passed tests.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "failed": {
+          "description": "Failed tests.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "skipped": {
+          "description": "Skipped or ignored tests.",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "runner",
+        "passed",
+        "failed",
+        "skipped"
+      ]
+    }
+  }
+}
