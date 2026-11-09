@@ -1,0 +1,27 @@
+[package]
+name = "firsthand-cli"
+description = "The firsthand command line"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "firsthand"
+path = "src/main.rs"
+
+[dependencies]
+fh-core.workspace = true
+fh-git.workspace = true
+clap.workspace = true
+anyhow.workspace = true
+
+[dev-dependencies]
+assert_cmd.workspace = true
+tempfile.workspace = true
+fh-testkit.workspace = true
+
+[lints]
+workspace = true

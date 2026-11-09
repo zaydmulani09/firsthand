@@ -1,0 +1,90 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+default-members = ["crates/fh-cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/zaydmulani09/firsthand"
+rust-version = "1.88"
+authors = ["Zayd Mulani"]
+
+[workspace.dependencies]
+fh-core = { path = "crates/fh-core" }
+fh-git = { path = "crates/fh-git" }
+fh-store = { path = "crates/fh-store" }
+fh-ledger = { path = "crates/fh-ledger" }
+fh-claims = { path = "crates/fh-claims" }
+fh-sem = { path = "crates/fh-sem" }
+fh-redact = { path = "crates/fh-redact" }
+fh-packet = { path = "crates/fh-packet" }
+fh-brief = { path = "crates/fh-brief" }
+fh-adapters = { path = "crates/fh-adapters" }
+fh-mcp = { path = "crates/fh-mcp" }
+fh-ui = { path = "crates/fh-ui" }
+fh-bench = { path = "crates/fh-bench" }
+fh-testkit = { path = "crates/fh-testkit" }
+anyhow = "1.0.104"
+assert_cmd = "2.2.2"
+axum = "0.8.9"
+base64 = "0.23.1"
+blake3 = "1.8.7"
+clap = { version = "4.6.7", features = ["derive"] }
+clap_complete = "4.6.11"
+directories = "6.0.0"
+ed25519-dalek = "3.0.0"
+fs4 = "1.1.0"
+getrandom = "0.4.3"
+globset = "0.4.21"
+insta = { version = "1.49.0", features = ["json"] }
+jiff = "0.2.41"
+libc = "0.2.191"
+mime_guess = "2.0.5"
+proptest = "1.12.0"
+rayon = "1.12.0"
+regex = "1.13.1"
+rmcp = "3.9.0"
+rusqlite = { version = "0.41.1", features = ["bundled"] }
+rust-embed = "8.13.0"
+schemars = "1.2.3"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.154", features = ["preserve_order"] }
+tempfile = "3.27.0"
+thiserror = "2.0.21"
+tokio = "1.54.1"
+toml = "1.2.1"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+tree-sitter = "0.27.2"
+tree-sitter-go = "0.25.0"
+tree-sitter-javascript = "0.25.0"
+tree-sitter-python = "0.25.0"
+tree-sitter-rust = "0.24.2"
+tree-sitter-typescript = "0.23.2"
+unicode-normalization = "0.1.26"
+uuid = { version = "1.29.2", features = ["v7"] }
+walkdir = "2.5.0"
+windows-sys = "0.61.2"
+zip = { version = "9.5.0", default-features = false, features = ["deflate"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+unwrap_used = "warn"
+expect_used = "warn"
+dbg_macro = "warn"
+todo = "warn"
+unimplemented = "warn"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev.package."*"]
+opt-level = 1

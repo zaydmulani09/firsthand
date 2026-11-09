@@ -1,0 +1,28 @@
+[package]
+name = "fh-packet"
+description = "Packet container, signing, trust and unpack hardening"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+
+[dependencies]
+fh-core.workspace = true
+fh-redact.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+zip.workspace = true
+ed25519-dalek.workspace = true
+base64.workspace = true
+blake3.workspace = true
+
+[dev-dependencies]
+fh-testkit.workspace = true
+tempfile.workspace = true
+proptest.workspace = true
+
+[lints]
+workspace = true

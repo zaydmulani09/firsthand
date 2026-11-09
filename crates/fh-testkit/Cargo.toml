@@ -1,0 +1,19 @@
+[package]
+name = "fh-testkit"
+description = "Test helpers: temp git repos, fixtures, fake clock"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+publish = false
+
+[dependencies]
+fh-core.workspace = true
+tempfile.workspace = true
+blake3.workspace = true
+walkdir.workspace = true
+
+[lints]
+workspace = true

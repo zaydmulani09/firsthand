@@ -1,0 +1,29 @@
+[package]
+name = "fh-core"
+description = "Core types, ids, hashing, canonical JSON, policy for Firsthand"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+schemars.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+blake3.workspace = true
+toml.workspace = true
+jiff.workspace = true
+unicode-normalization.workspace = true
+regex.workspace = true
+directories.workspace = true
+getrandom.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

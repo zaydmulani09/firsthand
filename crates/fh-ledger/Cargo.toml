@@ -1,0 +1,26 @@
+[package]
+name = "fh-ledger"
+description = "Hash-chained ledger, blob store and hook fast path"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+
+[dependencies]
+fh-core.workspace = true
+fh-git.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+fs4.workspace = true
+regex.workspace = true
+
+[dev-dependencies]
+fh-testkit.workspace = true
+tempfile.workspace = true
+proptest.workspace = true
+
+[lints]
+workspace = true

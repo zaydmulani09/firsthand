@@ -1,0 +1,21 @@
+[package]
+name = "fh-redact"
+description = "Secret and path redaction"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+
+[dependencies]
+fh-core.workspace = true
+regex.workspace = true
+serde.workspace = true
+blake3.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true
