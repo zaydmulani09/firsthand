@@ -1,6 +1,9 @@
 //! Build orchestration tasks. Run with `cargo xtask <task>` (alias in `.cargo/config.toml`).
 //! Works the same in PowerShell and POSIX shells.
 
+// Dev tooling: static regexes and fixture builders may panic on programmer error.
+#![allow(clippy::expect_used)]
+
 use anyhow::{Context, Result, bail};
 use regex::Regex;
 use std::path::{Path, PathBuf};
