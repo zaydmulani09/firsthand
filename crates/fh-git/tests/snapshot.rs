@@ -154,9 +154,12 @@ fn linked_worktree_snapshot_uses_its_own_index() {
             .unwrap()
             .is_some()
     );
+    // Temp dirs can be reached through symlinks (/var vs /private/var) or 8.3
+    // short names on Windows, so compare canonical paths.
+    let canon = |p: &std::path::Path| std::fs::canonicalize(p).unwrap();
     assert_eq!(
-        repo.common_dir,
-        Repo::discover(r.path()).unwrap().common_dir
+        canon(&repo.common_dir),
+        canon(&Repo::discover(r.path()).unwrap().common_dir)
     );
 }
 
