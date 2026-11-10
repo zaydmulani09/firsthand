@@ -10,9 +10,13 @@ authors.workspace = true
 publish = false
 
 [dependencies]
+fh-adapters.workspace = true
 fh-core.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
